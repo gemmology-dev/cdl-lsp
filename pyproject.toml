@@ -67,6 +67,11 @@ all = [
     "gemmology-crystal-renderer>=1.0.0",
     "gemmology-mineral-database>=1.0.0",
 ]
+docs = [
+    "mkdocs>=1.5",
+    "mkdocs-material>=9.0",
+    "mkdocstrings[python]>=0.24"
+]
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
