@@ -2,9 +2,8 @@
 Tests for CDL LSP Hover functionality.
 """
 
-import pytest
 
-from cdl_lsp.features.hover import get_hover_info, _get_word_at_position
+from cdl_lsp.features.hover import _get_word_at_position, get_hover_info
 
 
 class TestGetWordAtPosition:
@@ -183,7 +182,7 @@ class TestHoverNoResult:
 
     def test_punctuation(self):
         """Hover on punctuation returns None."""
-        hover = get_hover_info("cubic[m3m]:{111}@1.0", 10)  # On colon
+        get_hover_info("cubic[m3m]:{111}@1.0", 10)  # On colon
         # May return None or may trigger adjacent word
         # Just verify it doesn't crash
         pass

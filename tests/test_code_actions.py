@@ -4,7 +4,7 @@ Tests for CDL LSP Code Actions functionality.
 
 import pytest
 
-from cdl_lsp.features.code_actions import get_code_actions, get_code_action_kinds
+from cdl_lsp.features.code_actions import get_code_action_kinds, get_code_actions
 
 
 class TestCodeActionKinds:
@@ -82,11 +82,8 @@ class TestCodeActionsIntegration:
     @pytest.fixture
     def lsprotocol_available(self):
         """Check if lsprotocol is available."""
-        try:
-            from lsprotocol import types
-            return True
-        except ImportError:
-            return False
+        import importlib.util
+        return importlib.util.find_spec("lsprotocol") is not None
 
     def test_typo_form_fix(self, lsprotocol_available):
         """Test typo form code action creation."""

@@ -169,7 +169,6 @@ def _extract_children(line: str, line_num: int, base_col: int) -> list[Any]:
         start = match.start()
         end = match.end()
 
-        detail = mod_params if mod_params else "modification"
 
         children.append(types.DocumentSymbol(
             name=f"{mod_name}({mod_params})" if mod_params else mod_name,

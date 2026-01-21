@@ -37,7 +37,7 @@ def _create_snippet_item(
     """Create a completion item for a preset snippet."""
     cdl = preset.get('cdl', '')
     display_name = preset.get('name', name)
-    system = preset.get('system', 'unknown')
+    preset.get('system', 'unknown')
     chemistry = preset.get('chemistry', '')
     hardness = preset.get('hardness', '')
 

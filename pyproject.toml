@@ -94,6 +94,7 @@ select = [
 ]
 ignore = [
     "E501",  # line too long
+    "E402",  # module level import not at top (intentional for try/except blocks)
 ]
 
 [tool.ruff.lint.isort]
