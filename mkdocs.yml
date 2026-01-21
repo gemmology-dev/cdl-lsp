@@ -43,6 +43,7 @@ plugins:
 
 nav:
   - Home: index.md
+  - Editor Features: features.md
   - API Reference: api.md
   - CLI Usage: cli.md
   - Examples: examples.md
