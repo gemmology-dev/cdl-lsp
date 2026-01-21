@@ -114,15 +114,6 @@ trigonal[-3m]:{10-11}                       # Rhombohedron
 
 ## API Reference
 
-### Server
-
-```python
-from cdl_lsp import create_server, SERVER_NAME, SERVER_VERSION
-
-server = create_server()
-print(f"Running {SERVER_NAME} v{SERVER_VERSION}")
-```
-
 ### Constants
 
 ```python
@@ -136,19 +127,16 @@ from cdl_lsp.constants import (
 )
 ```
 
-### Features
+### Server
+
+The LSP server handles all features internally. Use the server module to start the language server:
 
 ```python
-from cdl_lsp.features import (
-    get_diagnostics,      # Validate CDL and return diagnostics
-    get_completions,      # Get completion items at position
-    get_hover_info,       # Get hover documentation
-    get_definition,       # Get definition location
-    format_cdl,           # Format CDL text
-    get_code_actions,     # Get available code actions
-    get_signature_help,   # Get signature help
-    get_document_symbols, # Get document outline
-)
+from cdl_lsp import create_server, SERVER_NAME, SERVER_VERSION
+
+server = create_server()
+print(f"Running {SERVER_NAME} v{SERVER_VERSION}")
+server.start_io()  # or server.start_tcp(host, port)
 ```
 
 ## Development

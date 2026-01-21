@@ -6,8 +6,8 @@ generating LSP diagnostics for errors and warnings.
 """
 
 import re
-from typing import List, Tuple, Optional, Any
 from dataclasses import dataclass
+from typing import Any
 
 # Import cdl_parser for parsing
 try:
@@ -24,9 +24,11 @@ except ImportError:
     types = None
 
 from ..constants import (
-    CRYSTAL_SYSTEMS, ALL_POINT_GROUPS, POINT_GROUPS, NAMED_FORMS,
-    TWIN_LAWS, MODIFICATIONS, is_valid_system, is_valid_point_group,
-    validate_point_group_for_system
+    ALL_POINT_GROUPS,
+    CRYSTAL_SYSTEMS,
+    POINT_GROUPS,
+    TWIN_LAWS,
+    validate_point_group_for_system,
 )
 
 # Try to import presets for validation
@@ -49,8 +51,8 @@ class DiagnosticInfo:
     message: str
     severity: str  # 'error', 'warning', 'information', 'hint'
     source: str = "cdl"
-    code: Optional[str] = None  # e.g., "typo-form", "typo-twin"
-    data: Optional[dict] = None  # e.g., {"suggested": "octahedron"}
+    code: str | None = None  # e.g., "typo-form", "typo-twin"
+    data: dict | None = None  # e.g., {"suggested": "octahedron"}
 
 
 def _get_severity(severity_str: str) -> Any:
@@ -85,7 +87,7 @@ def _create_diagnostic(info: DiagnosticInfo) -> Any:
     )
 
 
-def _find_position(text: str, char_pos: int) -> Tuple[int, int]:
+def _find_position(text: str, char_pos: int) -> tuple[int, int]:
     """Convert character position to (line, column)."""
     line = 0
     col = 0
@@ -100,7 +102,7 @@ def _find_position(text: str, char_pos: int) -> Tuple[int, int]:
     return (line, col)
 
 
-def _extract_error_position(error_msg: str) -> Optional[int]:
+def _extract_error_position(error_msg: str) -> int | None:
     """Extract position from parser error message."""
     # Pattern: "at position N"
     match = re.search(r'at position (\d+)', error_msg)
@@ -109,7 +111,7 @@ def _extract_error_position(error_msg: str) -> Optional[int]:
     return None
 
 
-def validate_document(text: str) -> List[DiagnosticInfo]:
+def validate_document(text: str) -> list[DiagnosticInfo]:
     """
     Validate CDL document and return diagnostics.
 
@@ -122,7 +124,7 @@ def validate_document(text: str) -> List[DiagnosticInfo]:
     Returns:
         List of DiagnosticInfo objects
     """
-    diagnostics: List[DiagnosticInfo] = []
+    diagnostics: list[DiagnosticInfo] = []
 
     # Skip empty documents
     text = text.strip()
@@ -146,9 +148,9 @@ def validate_document(text: str) -> List[DiagnosticInfo]:
     return diagnostics
 
 
-def _validate_cdl_line(line_text: str, line_num: int) -> List[DiagnosticInfo]:
+def _validate_cdl_line(line_text: str, line_num: int) -> list[DiagnosticInfo]:
     """Validate a single CDL line."""
-    diagnostics: List[DiagnosticInfo] = []
+    diagnostics: list[DiagnosticInfo] = []
 
     # Check if this is a preset name (single word matching a known preset)
     line_stripped = line_text.strip().lower()
@@ -158,7 +160,7 @@ def _validate_cdl_line(line_text: str, line_num: int) -> List[DiagnosticInfo]:
 
     # First, check for common issues to provide better quick-fix diagnostics
     # These run before parser to catch errors with proper code/data for code actions
-    pre_parse_diagnostics: List[DiagnosticInfo] = []
+    pre_parse_diagnostics: list[DiagnosticInfo] = []
 
     # Check for syntax errors that we can provide quick fixes for
     _check_missing_colon(line_text, line_num, pre_parse_diagnostics)
@@ -218,9 +220,9 @@ def _validate_cdl_line(line_text: str, line_num: int) -> List[DiagnosticInfo]:
     return diagnostics
 
 
-def _semantic_validation(line_text: str, line_num: int) -> List[DiagnosticInfo]:
+def _semantic_validation(line_text: str, line_num: int) -> list[DiagnosticInfo]:
     """Perform semantic validation beyond syntax checking."""
-    diagnostics: List[DiagnosticInfo] = []
+    diagnostics: list[DiagnosticInfo] = []
 
     # Check for unusually large scale values
     scale_pattern = r'@(\d+\.?\d*)'
@@ -270,7 +272,7 @@ def _semantic_validation(line_text: str, line_num: int) -> List[DiagnosticInfo]:
     return diagnostics
 
 
-def _check_form_typos(line_text: str, line_num: int, diagnostics: List[DiagnosticInfo]) -> None:
+def _check_form_typos(line_text: str, line_num: int, diagnostics: list[DiagnosticInfo]) -> None:
     """Check for common form name typos."""
     # Common typos
     typos = {
@@ -306,7 +308,7 @@ def _check_form_typos(line_text: str, line_num: int, diagnostics: List[Diagnosti
                 ))
 
 
-def _check_twin_typos(line_text: str, line_num: int, diagnostics: List[DiagnosticInfo]) -> None:
+def _check_twin_typos(line_text: str, line_num: int, diagnostics: list[DiagnosticInfo]) -> None:
     """Check for common twin law typos."""
     # Look for twin() calls
     twin_match = re.search(r'twin\s*\(\s*(\w+)', line_text)
@@ -343,7 +345,7 @@ def _check_twin_typos(line_text: str, line_num: int, diagnostics: List[Diagnosti
             ))
 
 
-def _check_missing_colon(line_text: str, line_num: int, diagnostics: List[DiagnosticInfo]) -> None:
+def _check_missing_colon(line_text: str, line_num: int, diagnostics: list[DiagnosticInfo]) -> None:
     """Check for missing colon between point group and forms.
 
     Detects patterns like 'cubic[m3m]{111}' which should be 'cubic[m3m]:{111}'.
@@ -370,7 +372,7 @@ def _check_missing_colon(line_text: str, line_num: int, diagnostics: List[Diagno
             ))
 
 
-def _check_system_typos(line_text: str, line_num: int, diagnostics: List[DiagnosticInfo]) -> None:
+def _check_system_typos(line_text: str, line_num: int, diagnostics: list[DiagnosticInfo]) -> None:
     """Check for common crystal system typos."""
     typos = {
         'cubik': 'cubic',
@@ -414,7 +416,7 @@ def _check_system_typos(line_text: str, line_num: int, diagnostics: List[Diagnos
             ))
 
 
-def _check_modification_typos(line_text: str, line_num: int, diagnostics: List[DiagnosticInfo]) -> None:
+def _check_modification_typos(line_text: str, line_num: int, diagnostics: list[DiagnosticInfo]) -> None:
     """Check for common modification typos."""
     typos = {
         'elognate': 'elongate',
@@ -456,7 +458,7 @@ def _check_modification_typos(line_text: str, line_num: int, diagnostics: List[D
                 break  # Only report first occurrence
 
 
-def get_diagnostics(text: str) -> List[Any]:
+def get_diagnostics(text: str) -> list[Any]:
     """
     Get LSP Diagnostic objects for a CDL document.
 

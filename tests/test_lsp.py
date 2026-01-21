@@ -7,16 +7,15 @@ Tests LSP features including diagnostics, completion, hover, and formatting.
 import pytest
 
 from cdl_lsp.constants import (
-    CRYSTAL_SYSTEMS,
     ALL_POINT_GROUPS,
-    POINT_GROUPS,
-    NAMED_FORMS,
-    TWIN_LAWS,
+    CRYSTAL_SYSTEMS,
     MODIFICATIONS,
-    SYSTEM_DOCS,
+    NAMED_FORMS,
     POINT_GROUP_DOCS,
+    POINT_GROUPS,
+    SYSTEM_DOCS,
+    TWIN_LAWS,
 )
-
 
 # =============================================================================
 # Constants Tests
@@ -86,7 +85,7 @@ class TestFeatureImports:
 
     def test_import_diagnostics(self):
         """Test diagnostics module import."""
-        from cdl_lsp.features import get_diagnostics, DiagnosticInfo
+        from cdl_lsp.features import get_diagnostics
         assert callable(get_diagnostics)
 
     def test_import_completion(self):
@@ -191,9 +190,14 @@ class TestFormatting:
         """Test basic CDL formatting."""
         from cdl_lsp.features import format_cdl
 
-        # Should normalize spacing
+        # Should normalize spacing - returns list of TextEdit objects
         result = format_cdl("cubic[m3m]:{111}@1.0+{100}@1.3")
-        assert '+' in result or result  # Formatted output
+        assert result is not None  # Ensure a result is returned
+        assert isinstance(result, list)  # Result should be a list of TextEdits
+        assert len(result) > 0  # Should have at least one edit
+        # Check that the formatted text contains proper spacing
+        formatted_text = result[0].new_text
+        assert ' + ' in formatted_text  # Forms should be separated by ' + '
 
 
 # =============================================================================

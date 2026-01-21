@@ -6,7 +6,7 @@ showing crystal definitions, forms, and modifications in the sidebar.
 """
 
 import re
-from typing import List, Any, Optional
+from typing import Any
 
 try:
     from lsprotocol import types
@@ -14,7 +14,7 @@ except ImportError:
     types = None
 
 
-def get_document_symbols(text: str) -> List[Any]:
+def get_document_symbols(text: str) -> list[Any]:
     """
     Extract symbols from a CDL document.
 
@@ -32,7 +32,7 @@ def get_document_symbols(text: str) -> List[Any]:
     if types is None:
         return []
 
-    symbols: List[Any] = []
+    symbols: list[Any] = []
     lines = text.split('\n')
 
     for line_num, line in enumerate(lines):
@@ -50,7 +50,7 @@ def get_document_symbols(text: str) -> List[Any]:
     return symbols
 
 
-def _parse_cdl_line(original_line: str, line: str, line_num: int) -> Optional[Any]:
+def _parse_cdl_line(original_line: str, line: str, line_num: int) -> Any | None:
     """
     Parse a CDL line and create a DocumentSymbol.
 
@@ -100,7 +100,7 @@ def _parse_cdl_line(original_line: str, line: str, line_num: int) -> Optional[An
     )
 
 
-def _extract_children(line: str, line_num: int, base_col: int) -> List[Any]:
+def _extract_children(line: str, line_num: int, base_col: int) -> list[Any]:
     """
     Extract form and modification symbols from a CDL line.
 
@@ -115,7 +115,7 @@ def _extract_children(line: str, line_num: int, base_col: int) -> List[Any]:
     if types is None:
         return []
 
-    children: List[Any] = []
+    children: list[Any] = []
 
     # Find Miller indices {hkl}
     for match in re.finditer(r'\{([^}]+)\}', line):

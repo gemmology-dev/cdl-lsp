@@ -5,7 +5,7 @@ This module provides code actions (quick fixes) for CDL documents,
 primarily for fixing typos detected by diagnostics.
 """
 
-from typing import List, Any, Optional
+from typing import Any
 
 try:
     from lsprotocol import types
@@ -16,8 +16,8 @@ except ImportError:
 def get_code_actions(
     uri: str,
     range_: Any,
-    diagnostics: List[Any]
-) -> List[Any]:
+    diagnostics: list[Any]
+) -> list[Any]:
     """
     Generate code actions (quick fixes) for the given diagnostics.
 
@@ -32,7 +32,7 @@ def get_code_actions(
     if types is None:
         return []
 
-    actions: List[Any] = []
+    actions: list[Any] = []
 
     for diag in diagnostics:
         # Check if diagnostic has a code that we can fix
@@ -62,7 +62,7 @@ def get_code_actions(
     return actions
 
 
-def _create_typo_fix(uri: str, diag: Any, data: dict) -> Optional[Any]:
+def _create_typo_fix(uri: str, diag: Any, data: dict) -> Any | None:
     """
     Create a quick fix for a typo diagnostic.
 
@@ -104,7 +104,7 @@ def _create_typo_fix(uri: str, diag: Any, data: dict) -> Optional[Any]:
     )
 
 
-def _create_insert_fix(uri: str, diag: Any, data: dict) -> Optional[Any]:
+def _create_insert_fix(uri: str, diag: Any, data: dict) -> Any | None:
     """
     Create a quick fix that inserts text at a position.
 
@@ -148,7 +148,7 @@ def _create_insert_fix(uri: str, diag: Any, data: dict) -> Optional[Any]:
     )
 
 
-def get_code_action_kinds() -> List[str]:
+def get_code_action_kinds() -> list[str]:
     """Get the list of supported code action kinds."""
     if types is None:
         return ['quickfix']

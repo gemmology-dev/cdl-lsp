@@ -7,7 +7,7 @@ allowing navigation to the source definitions of forms, twin laws, etc.
 
 import os
 import re
-from typing import Optional, Any, Tuple, List
+from typing import Any
 
 try:
     from lsprotocol import types
@@ -15,12 +15,16 @@ except ImportError:
     types = None
 
 from ..constants import (
-    NAMED_FORMS, TWIN_LAWS, CRYSTAL_SYSTEMS, ALL_POINT_GROUPS,
-    DEFINITION_LOCATIONS
+    ALL_POINT_GROUPS,
+    CRYSTAL_SYSTEMS,
+    DEFINITION_PATTERNS,
+    NAMED_FORMS,
+    TWIN_LAWS,
+    get_definition_source,
 )
 
 
-def _get_word_at_position(line: str, col: int) -> Tuple[str, int, int]:
+def _get_word_at_position(line: str, col: int) -> tuple[str, int, int]:
     """
     Get the word at the given column position.
 
@@ -46,7 +50,7 @@ def _get_word_at_position(line: str, col: int) -> Tuple[str, int, int]:
     return (word, start, end)
 
 
-def _find_line_in_file(file_path: str, pattern: str, target: str) -> Optional[int]:
+def _find_line_in_file(file_path: str, pattern: str, target: str) -> int | None:
     """
     Find the line number of a target definition in a file.
 
@@ -62,7 +66,7 @@ def _find_line_in_file(file_path: str, pattern: str, target: str) -> Optional[in
         return None
 
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, encoding='utf-8') as f:
             lines = f.readlines()
 
         in_dict = False
@@ -98,11 +102,12 @@ def _find_line_in_file(file_path: str, pattern: str, target: str) -> Optional[in
         return None
 
 
-def _get_plugin_root() -> str:
-    """Get the plugin root directory."""
-    # This file is at lsp/features/definition.py
-    # Plugin root is 2 levels up
-    return os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+def _get_source_file(category: str) -> str | None:
+    """Get the source file path for a definition category."""
+    source_path = get_definition_source(category)
+    if source_path is not None and source_path.exists():
+        return str(source_path)
+    return None
 
 
 def _create_location(file_path: str, line: int, character: int = 0) -> Any:
@@ -133,7 +138,7 @@ def get_definition(
     col: int,
     line_num: int = 0,
     document_uri: str = ''
-) -> Optional[Any]:
+) -> Any | None:
     """
     Get definition location for the symbol at position.
 
@@ -152,46 +157,45 @@ def get_definition(
         return None
 
     word_lower = word.lower()
-    plugin_root = _get_plugin_root()
 
     # Check if it's a named form
     if word_lower in NAMED_FORMS:
-        loc_info = DEFINITION_LOCATIONS['NAMED_FORMS']
-        file_path = os.path.join(plugin_root, loc_info['file'])
-
-        line_num = _find_line_in_file(file_path, loc_info['pattern'], word_lower)
-        if line_num is not None:
-            return _create_location(file_path, line_num)
+        file_path = _get_source_file('forms')
+        if file_path:
+            pattern = DEFINITION_PATTERNS['forms']
+            found_line = _find_line_in_file(file_path, pattern, word_lower)
+            if found_line is not None:
+                return _create_location(file_path, found_line)
 
     # Check if it's a twin law
     if word_lower in TWIN_LAWS:
-        loc_info = DEFINITION_LOCATIONS['TWIN_LAWS']
-        file_path = os.path.join(plugin_root, loc_info['file'])
-
-        # Handle both 'spinel' and 'spinel_law' style names
-        line_num = _find_line_in_file(file_path, loc_info['pattern'], word_lower)
-        if line_num is None and not word_lower.endswith('_law'):
-            line_num = _find_line_in_file(file_path, loc_info['pattern'], word_lower + '_law')
-        if line_num is not None:
-            return _create_location(file_path, line_num)
+        file_path = _get_source_file('twin_laws')
+        if file_path:
+            pattern = DEFINITION_PATTERNS['twin_laws']
+            # Handle both 'spinel' and 'spinel_law' style names
+            found_line = _find_line_in_file(file_path, pattern, word_lower)
+            if found_line is None and not word_lower.endswith('_law'):
+                found_line = _find_line_in_file(file_path, pattern, word_lower + '_law')
+            if found_line is not None:
+                return _create_location(file_path, found_line)
 
     # Check if it's a crystal system
     if word_lower in CRYSTAL_SYSTEMS:
-        loc_info = DEFINITION_LOCATIONS['POINT_GROUPS']
-        file_path = os.path.join(plugin_root, loc_info['file'])
-
-        line_num = _find_line_in_file(file_path, 'CRYSTAL_SYSTEMS', word_lower)
-        if line_num is not None:
-            return _create_location(file_path, line_num)
+        file_path = _get_source_file('systems')
+        if file_path:
+            pattern = DEFINITION_PATTERNS['systems']
+            found_line = _find_line_in_file(file_path, pattern, word_lower)
+            if found_line is not None:
+                return _create_location(file_path, found_line)
 
     # Check if it's a point group
     if word in ALL_POINT_GROUPS:
-        loc_info = DEFINITION_LOCATIONS['POINT_GROUPS']
-        file_path = os.path.join(plugin_root, loc_info['file'])
-
-        line_num = _find_line_in_file(file_path, loc_info['pattern'], word)
-        if line_num is not None:
-            return _create_location(file_path, line_num)
+        file_path = _get_source_file('point_groups')
+        if file_path:
+            pattern = DEFINITION_PATTERNS['point_groups']
+            found_line = _find_line_in_file(file_path, pattern, word)
+            if found_line is not None:
+                return _create_location(file_path, found_line)
 
     return None
 
@@ -201,7 +205,7 @@ def get_definitions(
     col: int,
     line_num: int = 0,
     document_uri: str = ''
-) -> List[Any]:
+) -> list[Any]:
     """
     Get all definition locations for the symbol at position.
 

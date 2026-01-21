@@ -5,11 +5,10 @@ This module provides SVG and glTF rendering of CDL code for live preview
 in the VS Code extension. 3D preview uses Three.js in a WebView.
 """
 
-import sys
 import os
-import json
+import sys
 import tempfile
-from typing import Optional, Dict, Any
+from typing import Any
 
 # Add scripts directory to path for imports
 _scripts_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'scripts')
@@ -18,7 +17,7 @@ if _scripts_dir not in sys.path:
 
 # Try to import the visualization module
 try:
-    from crystal_visualization import generate_cdl_svg, CDL_AVAILABLE
+    from crystal_visualization import CDL_AVAILABLE, generate_cdl_svg
     PREVIEW_AVAILABLE = CDL_AVAILABLE
 except ImportError:
     PREVIEW_AVAILABLE = False
@@ -26,8 +25,8 @@ except ImportError:
 
 # Try to import geometry modules for 3D export
 try:
-    from crystal_language import parse_cdl
     from crystal_geometry import cdl_to_geometry, geometry_to_gltf
+    from crystal_language import parse_cdl
     GLTF_AVAILABLE = True
 except ImportError:
     GLTF_AVAILABLE = False
@@ -46,7 +45,7 @@ except ImportError:
         return None
 
 
-def _resolve_preset_to_cdl(line: str) -> Optional[str]:
+def _resolve_preset_to_cdl(line: str) -> str | None:
     """
     Check if line is a preset name and return its CDL, otherwise return None.
 
@@ -66,7 +65,7 @@ def _resolve_preset_to_cdl(line: str) -> Optional[str]:
     return None
 
 
-def render_cdl_preview(text: str, width: int = 600, height: int = 500) -> Dict[str, Any]:
+def render_cdl_preview(text: str, width: int = 600, height: int = 500) -> dict[str, Any]:
     """
     Render CDL code as an SVG preview.
 
@@ -131,7 +130,7 @@ def render_cdl_preview(text: str, width: int = 600, height: int = 500) -> Dict[s
             )
 
             # Read the generated SVG
-            with open(temp_path, 'r') as f:
+            with open(temp_path) as f:
                 svg_content = f.read()
 
             return {
@@ -213,7 +212,7 @@ def _create_error_svg(message: str, width: int = 600, height: int = 500) -> str:
 </svg>'''
 
 
-def render_cdl_preview_3d(text: str) -> Dict[str, Any]:
+def render_cdl_preview_3d(text: str) -> dict[str, Any]:
     """
     Render CDL code as a 3D glTF model for Three.js preview.
 
@@ -302,7 +301,7 @@ def render_cdl_preview_3d(text: str) -> Dict[str, Any]:
         }
 
 
-def get_preview_capabilities() -> Dict[str, Any]:
+def get_preview_capabilities() -> dict[str, Any]:
     """Get information about preview capabilities."""
     formats = []
     if PREVIEW_AVAILABLE:

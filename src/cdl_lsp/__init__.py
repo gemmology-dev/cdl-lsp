@@ -21,7 +21,7 @@ __version__ = "1.0.0"
 __author__ = "Fabian Schuh"
 __email__ = "fabian@gemmology.dev"
 
-from .server import create_server, SERVER_NAME, SERVER_VERSION
+from .server import SERVER_NAME, SERVER_VERSION, create_server
 
 __all__ = [
     "__version__",

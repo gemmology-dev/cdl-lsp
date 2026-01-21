@@ -6,7 +6,7 @@ when typing modifications like elongate(), truncate(), or twin().
 """
 
 import re
-from typing import Optional, Any, Tuple
+from typing import Any
 
 try:
     from lsprotocol import types
@@ -89,7 +89,7 @@ MODIFICATION_SIGNATURES = {
 }
 
 
-def _find_active_modification(line: str, col: int) -> Tuple[Optional[str], int]:
+def _find_active_modification(line: str, col: int) -> tuple[str | None, int]:
     """
     Find which modification (if any) the cursor is inside.
 
@@ -130,7 +130,7 @@ def _find_active_modification(line: str, col: int) -> Tuple[Optional[str], int]:
     return (None, 0)
 
 
-def get_signature_help(line: str, col: int) -> Optional[Any]:
+def get_signature_help(line: str, col: int) -> Any | None:
     """
     Get signature help for the current position.
 

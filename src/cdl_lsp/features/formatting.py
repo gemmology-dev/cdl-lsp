@@ -13,7 +13,7 @@ Formatting Rules:
 """
 
 import re
-from typing import List, Any, Optional
+from typing import Any
 
 try:
     from lsprotocol import types
@@ -21,7 +21,7 @@ except ImportError:
     types = None
 
 
-def format_cdl(text: str, options: Optional[Any] = None) -> List[Any]:
+def format_cdl(text: str, options: Any | None = None) -> list[Any]:
     """
     Format a CDL document.
 
@@ -35,7 +35,7 @@ def format_cdl(text: str, options: Optional[Any] = None) -> List[Any]:
     if types is None:
         return []
 
-    edits: List[Any] = []
+    edits: list[Any] = []
     lines = text.split('\n')
 
     for line_num, line in enumerate(lines):
@@ -127,7 +127,7 @@ def format_line(line: str) -> str:
     # After: twin(spinel)
     for mod in ['elongate', 'truncate', 'taper', 'bevel', 'twin']:
         # Fix space before parenthesis
-        formatted = re.sub(rf'({mod})\s+\(', rf'\1(', formatted, flags=re.IGNORECASE)
+        formatted = re.sub(rf'({mod})\s+\(', r'\1(', formatted, flags=re.IGNORECASE)
         # Fix spaces inside parentheses
         pattern = rf'({mod})\(\s*([^)]*?)\s*\)'
         formatted = re.sub(pattern, lambda m: f"{m.group(1)}({m.group(2).strip()})", formatted, flags=re.IGNORECASE)
@@ -151,7 +151,7 @@ def format_line(line: str) -> str:
     return leading_ws + formatted
 
 
-def format_range(text: str, start_line: int, end_line: int, options: Optional[Any] = None) -> List[Any]:
+def format_range(text: str, start_line: int, end_line: int, options: Any | None = None) -> list[Any]:
     """
     Format a range within a CDL document.
 
@@ -167,7 +167,7 @@ def format_range(text: str, start_line: int, end_line: int, options: Optional[An
     if types is None:
         return []
 
-    edits: List[Any] = []
+    edits: list[Any] = []
     lines = text.split('\n')
 
     for line_num in range(start_line, min(end_line + 1, len(lines))):

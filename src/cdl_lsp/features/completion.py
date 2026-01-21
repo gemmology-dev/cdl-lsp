@@ -6,8 +6,8 @@ cursor position and context within the CDL syntax.
 """
 
 import re
-from typing import List, Optional, Any, Tuple
 from enum import Enum, auto
+from typing import Any
 
 try:
     from lsprotocol import types
@@ -15,9 +15,19 @@ except ImportError:
     types = None
 
 from ..constants import (
-    CRYSTAL_SYSTEMS, POINT_GROUPS, DEFAULT_POINT_GROUPS, NAMED_FORMS,
-    TWIN_LAWS, MODIFICATIONS, COMMON_MILLER_INDICES, COMMON_SCALES,
-    FORM_DOCS, TWIN_LAW_DOCS, SYSTEM_DOCS, POINT_GROUP_DOCS, MODIFICATION_DOCS
+    COMMON_MILLER_INDICES,
+    COMMON_SCALES,
+    CRYSTAL_SYSTEMS,
+    DEFAULT_POINT_GROUPS,
+    FORM_DOCS,
+    MODIFICATION_DOCS,
+    MODIFICATIONS,
+    NAMED_FORMS,
+    POINT_GROUP_DOCS,
+    POINT_GROUPS,
+    SYSTEM_DOCS,
+    TWIN_LAW_DOCS,
+    TWIN_LAWS,
 )
 from .snippets import get_preset_snippets
 
@@ -39,7 +49,7 @@ class CompletionContext(Enum):
     UNKNOWN = auto()
 
 
-def _detect_context(line: str, col: int) -> Tuple[CompletionContext, str]:
+def _detect_context(line: str, col: int) -> tuple[CompletionContext, str]:
     """
     Detect the completion context based on cursor position.
 
@@ -123,7 +133,7 @@ def _detect_context(line: str, col: int) -> Tuple[CompletionContext, str]:
     return (CompletionContext.EMPTY, current_word)
 
 
-def _get_system_from_line(line: str) -> Optional[str]:
+def _get_system_from_line(line: str) -> str | None:
     """Extract the crystal system from a CDL line."""
     match = re.match(r'(\w+)', line)
     if match:
@@ -138,8 +148,8 @@ def _create_completion_item(
     kind: Any = None,
     detail: str = '',
     documentation: str = '',
-    insert_text: Optional[str] = None,
-    sort_text: Optional[str] = None
+    insert_text: str | None = None,
+    sort_text: str | None = None
 ) -> Any:
     """Create a completion item."""
     if types is None:
@@ -167,8 +177,8 @@ def _create_completion_item(
 def get_completions(
     line: str,
     col: int,
-    trigger_character: Optional[str] = None
-) -> List[Any]:
+    trigger_character: str | None = None
+) -> list[Any]:
     """
     Get completion items for the current position.
 
@@ -181,7 +191,7 @@ def get_completions(
         List of completion items
     """
     context, current_word = _detect_context(line, col)
-    items: List[Any] = []
+    items: list[Any] = []
 
     kind = types.CompletionItemKind if types else None
 

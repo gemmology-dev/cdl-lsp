@@ -5,10 +5,10 @@ This module provides detailed explanations of CDL (Crystal Description Language)
 code, breaking down each component with crystallographic context.
 """
 
+import os
 import re
 import sys
-import os
-from typing import Optional, Dict, List, Any
+from typing import Any
 
 # Add scripts directory to path for imports
 _scripts_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'scripts')
@@ -16,9 +16,16 @@ if _scripts_dir not in sys.path:
     sys.path.insert(0, _scripts_dir)
 
 from ..constants import (
-    CRYSTAL_SYSTEMS, ALL_POINT_GROUPS, NAMED_FORMS, TWIN_LAWS, MODIFICATIONS,
-    SYSTEM_DOCS, POINT_GROUP_DOCS, FORM_DOCS, TWIN_LAW_DOCS, MODIFICATION_DOCS,
-    get_system_for_point_group, POINT_GROUPS
+    ALL_POINT_GROUPS,
+    CRYSTAL_SYSTEMS,
+    FORM_DOCS,
+    MODIFICATION_DOCS,
+    MODIFICATIONS,
+    NAMED_FORMS,
+    POINT_GROUP_DOCS,
+    POINT_GROUPS,
+    SYSTEM_DOCS,
+    TWIN_LAW_DOCS,
 )
 
 # Try to import presets for explanation
@@ -105,7 +112,7 @@ def _explain_preset(preset_name: str, line_num: int) -> str:
 
     # Chemistry
     if preset.get('chemistry'):
-        parts.append(f"\n### Chemistry\n")
+        parts.append("\n### Chemistry\n")
         parts.append(f"**Formula:** {preset['chemistry']}\n")
 
     # Physical properties
@@ -122,7 +129,7 @@ def _explain_preset(preset_name: str, line_num: int) -> str:
         physical_props.append(f"**Lustre:** {preset['lustre']}")
 
     if physical_props:
-        parts.append(f"\n### Physical Properties\n")
+        parts.append("\n### Physical Properties\n")
         parts.append("\n".join(physical_props) + "\n")
 
     # Optical properties
@@ -139,32 +146,32 @@ def _explain_preset(preset_name: str, line_num: int) -> str:
         optical_props.append(f"**Pleochroism:** {preset['pleochroism']}")
 
     if optical_props:
-        parts.append(f"\n### Optical Properties\n")
+        parts.append("\n### Optical Properties\n")
         parts.append("\n".join(optical_props) + "\n")
 
     # Colors
     if preset.get('colors'):
-        parts.append(f"\n### Colors\n")
+        parts.append("\n### Colors\n")
         parts.append(", ".join(preset['colors']) + "\n")
 
     # Localities
     if preset.get('localities'):
-        parts.append(f"\n### Localities\n")
+        parts.append("\n### Localities\n")
         parts.append(", ".join(preset['localities']) + "\n")
 
     # Crystal forms
     if preset.get('forms'):
-        parts.append(f"\n### Crystal Forms\n")
+        parts.append("\n### Crystal Forms\n")
         parts.append(", ".join(f.title() for f in preset['forms']) + "\n")
 
     # Inclusions
     if preset.get('inclusions'):
-        parts.append(f"\n### Common Inclusions\n")
+        parts.append("\n### Common Inclusions\n")
         parts.append(", ".join(preset['inclusions']) + "\n")
 
     # Treatments
     if preset.get('treatments'):
-        parts.append(f"\n### Known Treatments\n")
+        parts.append("\n### Known Treatments\n")
         parts.append(", ".join(preset['treatments']) + "\n")
 
     return "".join(parts)
@@ -226,7 +233,7 @@ def _explain_line(line: str, line_num: int) -> str:
 
     # Modifications
     if modifications_info:
-        parts.append(f"\n### Modifications\n")
+        parts.append("\n### Modifications\n")
         for mod in modifications_info:
             mod_name = mod.get('name')
             mod_doc = mod.get('doc', '')
@@ -259,7 +266,7 @@ def _explain_line(line: str, line_num: int) -> str:
     return "".join(parts)
 
 
-def _extract_system(line: str) -> Optional[tuple]:
+def _extract_system(line: str) -> tuple | None:
     """Extract crystal system from line."""
     match = re.match(r'(\w+)\s*\[', line)
     if match:
@@ -270,7 +277,7 @@ def _extract_system(line: str) -> Optional[tuple]:
     return None
 
 
-def _extract_point_group(line: str) -> Optional[tuple]:
+def _extract_point_group(line: str) -> tuple | None:
     """Extract point group from line."""
     match = re.search(r'\[([^\]]+)\]', line)
     if match:
@@ -281,7 +288,7 @@ def _extract_point_group(line: str) -> Optional[tuple]:
     return None
 
 
-def _extract_forms(line: str) -> List[Dict[str, Any]]:
+def _extract_forms(line: str) -> list[dict[str, Any]]:
     """Extract crystal forms from line."""
     forms = []
 
@@ -341,7 +348,7 @@ def _extract_forms(line: str) -> List[Dict[str, Any]]:
     return forms
 
 
-def _extract_modifications(line: str) -> List[Dict[str, Any]]:
+def _extract_modifications(line: str) -> list[dict[str, Any]]:
     """Extract modifications from line."""
     modifications = []
 
@@ -363,7 +370,7 @@ def _extract_modifications(line: str) -> List[Dict[str, Any]]:
     return modifications
 
 
-def _extract_twin(line: str) -> Optional[Dict[str, Any]]:
+def _extract_twin(line: str) -> dict[str, Any] | None:
     """Extract twin information from line."""
     # Look for twin(law) or twin(law, contact)
     twin_match = re.search(r'twin\s*\(\s*(\w+)(?:\s*,\s*([^)]+))?\s*\)', line, re.IGNORECASE)
@@ -414,7 +421,7 @@ def _generate_summary(system_info, point_group_info, forms_info, modifications_i
     return "".join(parts)
 
 
-def get_explain_result(text: str) -> Dict[str, Any]:
+def get_explain_result(text: str) -> dict[str, Any]:
     """
     Get explanation result in a structured format.
 

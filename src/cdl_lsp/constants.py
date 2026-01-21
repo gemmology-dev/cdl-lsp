@@ -5,7 +5,7 @@ Provides comprehensive constant definitions, documentation, and metadata
 for CDL language elements used by the LSP server.
 """
 
-from typing import Dict, List, Optional, Set, Tuple
+from pathlib import Path
 
 # =============================================================================
 # Crystal Systems
@@ -15,28 +15,34 @@ from typing import Dict, List, Optional, Set, Tuple
 try:
     from cdl_parser import (
         CRYSTAL_SYSTEMS as _SYSTEMS,
-        POINT_GROUPS as _GROUPS,
-        TWIN_LAWS as _TWINS,
+    )
+    from cdl_parser import (
         NAMED_FORMS as _FORMS,
     )
-    CRYSTAL_SYSTEMS: Set[str] = set(_SYSTEMS)
-    NAMED_FORMS: Dict[str, Tuple[int, int, int]] = dict(_FORMS)
-    TWIN_LAWS: Set[str] = set(_TWINS)
+    from cdl_parser import (
+        POINT_GROUPS as _GROUPS,
+    )
+    from cdl_parser import (
+        TWIN_LAWS as _TWINS,
+    )
+    CRYSTAL_SYSTEMS: set[str] = set(_SYSTEMS)
+    NAMED_FORMS: dict[str, tuple[int, int, int]] = dict(_FORMS)
+    TWIN_LAWS: set[str] = set(_TWINS)
     # Flatten all point groups from all systems
-    ALL_POINT_GROUPS: Set[str] = set()
+    ALL_POINT_GROUPS: set[str] = set()
     for _pgs in _GROUPS.values():
         ALL_POINT_GROUPS.update(_pgs)
     # Point groups by system
-    POINT_GROUPS: Dict[str, Set[str]] = {k: set(v) for k, v in _GROUPS.items()}
+    POINT_GROUPS: dict[str, set[str]] = {k: set(v) for k, v in _GROUPS.items()}
 except ImportError:
     # Fallback definitions
-    CRYSTAL_SYSTEMS: Set[str] = {
+    CRYSTAL_SYSTEMS: set[str] = {
         'cubic', 'tetragonal', 'orthorhombic', 'hexagonal',
         'trigonal', 'monoclinic', 'triclinic'
     }
 
     # All 32 crystallographic point groups by system
-    POINT_GROUPS: Dict[str, Set[str]] = {
+    POINT_GROUPS: dict[str, set[str]] = {
         'cubic': {'m3m', '432', '-43m', 'm-3', '23'},
         'hexagonal': {'6/mmm', '622', '6mm', '-6m2', '6/m', '-6', '6'},
         'trigonal': {'-3m', '32', '3m', '-3', '3'},
@@ -47,9 +53,9 @@ except ImportError:
     }
 
     # All point groups flattened
-    ALL_POINT_GROUPS: Set[str] = set().union(*POINT_GROUPS.values())
+    ALL_POINT_GROUPS: set[str] = set().union(*POINT_GROUPS.values())
 
-    NAMED_FORMS: Dict[str, Tuple[int, int, int]] = {
+    NAMED_FORMS: dict[str, tuple[int, int, int]] = {
         # Cubic
         'cube': (1, 0, 0),
         'octahedron': (1, 1, 1),
@@ -83,14 +89,14 @@ except ImportError:
         'prism_bc': (0, 1, 1),
     }
 
-    TWIN_LAWS: Set[str] = {
+    TWIN_LAWS: set[str] = {
         'spinel', 'spinel_law', 'iron_cross', 'brazil', 'dauphine', 'japan',
         'carlsbad', 'baveno', 'manebach', 'albite', 'pericline', 'trilling',
         'fluorite', 'staurolite_60', 'staurolite_90', 'gypsum_swallow'
     }
 
 # Default point group for each system
-DEFAULT_POINT_GROUPS: Dict[str, str] = {
+DEFAULT_POINT_GROUPS: dict[str, str] = {
     'cubic': 'm3m',
     'tetragonal': '4/mmm',
     'orthorhombic': 'mmm',
@@ -104,13 +110,13 @@ DEFAULT_POINT_GROUPS: Dict[str, str] = {
 # Modifications
 # =============================================================================
 
-MODIFICATIONS: Set[str] = {'elongate', 'truncate', 'taper', 'bevel', 'twin'}
+MODIFICATIONS: set[str] = {'elongate', 'truncate', 'taper', 'bevel', 'twin'}
 
 # =============================================================================
 # Common Miller indices by system
 # =============================================================================
 
-COMMON_MILLER_INDICES: Dict[str, List[str]] = {
+COMMON_MILLER_INDICES: dict[str, list[str]] = {
     'cubic': ['{111}', '{100}', '{110}', '{211}', '{210}', '{221}', '{321}'],
     'tetragonal': ['{100}', '{001}', '{101}', '{110}', '{111}', '{011}'],
     'orthorhombic': ['{100}', '{010}', '{001}', '{110}', '{101}', '{011}', '{111}'],
@@ -121,13 +127,13 @@ COMMON_MILLER_INDICES: Dict[str, List[str]] = {
 }
 
 # Common scale values
-COMMON_SCALES: List[str] = ['0.3', '0.5', '0.8', '1.0', '1.2', '1.5', '2.0']
+COMMON_SCALES: list[str] = ['0.3', '0.5', '0.8', '1.0', '1.2', '1.5', '2.0']
 
 # =============================================================================
 # Documentation for hover
 # =============================================================================
 
-SYSTEM_DOCS: Dict[str, str] = {
+SYSTEM_DOCS: dict[str, str] = {
     'cubic': """**Cubic (Isometric) System**
 
 Default point group: m3m
@@ -185,7 +191,7 @@ Lowest symmetry system - no rotation axes, only inversion center.
 Examples: plagioclase, amazonite, rhodonite, turquoise"""
 }
 
-POINT_GROUP_DOCS: Dict[str, str] = {
+POINT_GROUP_DOCS: dict[str, str] = {
     # Cubic
     'm3m': "**m3m** (Hermann-Mauguin) - Full cubic symmetry (Oh). 48 operations. Examples: diamond, garnet, fluorite",
     '432': "**432** - Cubic rotations only (O). 24 operations. Chiral (no mirror planes). Examples: sal-ammoniac",
@@ -233,7 +239,7 @@ POINT_GROUP_DOCS: Dict[str, str] = {
     '1': "**1** - Identity only (C1). 1 operation. Chiral. No symmetry."
 }
 
-FORM_DOCS: Dict[str, str] = {
+FORM_DOCS: dict[str, str] = {
     'cube': "**Cube** {100} - 6 faces. Cardinal form of the cubic system.",
     'octahedron': "**Octahedron** {111} - 8 faces. Dual of the cube.",
     'dodecahedron': "**Rhombic Dodecahedron** {110} - 12 faces. Common in garnet.",
@@ -263,7 +269,7 @@ FORM_DOCS: Dict[str, str] = {
     'prism_bc': "**Prism bc** {011} - 4 faces.",
 }
 
-TWIN_LAW_DOCS: Dict[str, str] = {
+TWIN_LAW_DOCS: dict[str, str] = {
     'spinel': "**Spinel Law (Macle)** - 180° rotation about [111]. Contact twin forming triangular plates. Examples: spinel, diamond, magnetite.",
     'spinel_law': "**Spinel Law (Macle)** - 180° rotation about [111]. Contact twin forming triangular plates. Examples: spinel, diamond, magnetite.",
     'iron_cross': "**Iron Cross Twin** - 90° rotation about [001]. Penetration twin characteristic of pyrite.",
@@ -282,7 +288,7 @@ TWIN_LAW_DOCS: Dict[str, str] = {
     'gypsum_swallow': "**Gypsum Swallow-Tail Twin** - Contact twin forming characteristic swallow-tail shape.",
 }
 
-MODIFICATION_DOCS: Dict[str, str] = {
+MODIFICATION_DOCS: dict[str, str] = {
     'elongate': """**elongate(axis:ratio)**
 
 Stretches the crystal along the specified axis.
@@ -338,27 +344,39 @@ Examples:
 }
 
 # =============================================================================
-# File locations for go-to-definition
+# Dynamic definition source resolution
 # =============================================================================
 
-# These are relative to the plugin root
-DEFINITION_LOCATIONS: Dict[str, Dict[str, str]] = {
-    'NAMED_FORMS': {
-        'file': 'scripts/crystal_language.py',
-        'pattern': 'NAMED_FORMS = {'
-    },
-    'TWIN_LAWS': {
-        'file': 'scripts/crystal_twins.py',
-        'pattern': 'TWIN_LAWS = {'
-    },
-    'CRYSTAL_PRESETS': {
-        'file': 'scripts/crystal_presets.py',
-        'pattern': 'CRYSTAL_PRESETS = {'
-    },
-    'POINT_GROUPS': {
-        'file': 'scripts/crystal_language.py',
-        'pattern': 'POINT_GROUPS = {'
-    }
+
+def get_definition_source(category: str) -> Path | None:
+    """
+    Locate definition source file dynamically via package introspection.
+
+    Args:
+        category: One of 'forms', 'point_groups', 'twin_laws', 'systems'
+
+    Returns:
+        Path to the source file containing the definition, or None
+    """
+    try:
+        # Try cdl_parser first (the canonical source)
+        import cdl_parser
+        parser_constants = Path(cdl_parser.__file__).parent / 'constants.py'
+        if parser_constants.exists():
+            return parser_constants
+    except ImportError:
+        pass
+
+    # Fallback to local constants
+    return Path(__file__)
+
+
+# Definition search patterns for each category
+DEFINITION_PATTERNS: dict[str, str] = {
+    'forms': 'NAMED_FORMS',
+    'twin_laws': 'TWIN_LAWS',
+    'point_groups': 'POINT_GROUPS',
+    'systems': 'CRYSTAL_SYSTEMS',
 }
 
 # =============================================================================
@@ -366,7 +384,7 @@ DEFINITION_LOCATIONS: Dict[str, Dict[str, str]] = {
 # =============================================================================
 
 
-def get_system_for_point_group(pg: str) -> Optional[str]:
+def get_system_for_point_group(pg: str) -> str | None:
     """Get the crystal system for a given point group."""
     for system, groups in POINT_GROUPS.items():
         if pg in groups:
@@ -381,7 +399,7 @@ def validate_point_group_for_system(system: str, pg: str) -> bool:
     return pg in POINT_GROUPS[system]
 
 
-def get_form_miller_indices(form_name: str) -> Optional[Tuple[int, int, int]]:
+def get_form_miller_indices(form_name: str) -> tuple[int, int, int] | None:
     """Get Miller indices for a named form."""
     return NAMED_FORMS.get(form_name.lower())
 

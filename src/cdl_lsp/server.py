@@ -10,8 +10,6 @@ completion, hover, and go-to-definition.
 import argparse
 import logging
 import sys
-import os
-from typing import Optional, List
 
 # Configure logging
 logging.basicConfig(
@@ -22,24 +20,23 @@ logging.basicConfig(
 logger = logging.getLogger('cdl-lsp')
 
 try:
-    from pygls.lsp.server import LanguageServer
     from lsprotocol import types
+    from pygls.lsp.server import LanguageServer
     PYGLS_AVAILABLE = True
 except ImportError:
     logger.warning("pygls not installed. Install with: pip install pygls lsprotocol")
     PYGLS_AVAILABLE = False
 
-from .features.diagnostics import get_diagnostics
-from .features.completion import get_completions
-from .features.hover import get_hover_info
-from .features.definition import get_definition
 from .features.code_actions import get_code_actions
-from .features.signature_help import get_signature_help
+from .features.completion import get_completions
+from .features.definition import get_definition
+from .features.diagnostics import get_diagnostics
 from .features.document_symbols import get_document_symbols
+from .features.explain import get_explain_result
 from .features.formatting import format_cdl
-from .features.explain import explain_cdl, get_explain_result
-from .features.preview import render_cdl_preview, render_cdl_preview_3d, get_preview_capabilities
-
+from .features.hover import get_hover_info
+from .features.preview import get_preview_capabilities, render_cdl_preview, render_cdl_preview_3d
+from .features.signature_help import get_signature_help
 
 # Server metadata
 SERVER_NAME = "cdl-language-server"
@@ -186,7 +183,7 @@ def create_server() -> 'LanguageServer':
     # ==========================================================================
 
     @server.feature(types.TEXT_DOCUMENT_COMPLETION)
-    def completion(params: types.CompletionParams) -> Optional[types.CompletionList]:
+    def completion(params: types.CompletionParams) -> types.CompletionList | None:
         """Handle completion request."""
         uri = params.text_document.uri
         position = params.position
@@ -221,7 +218,7 @@ def create_server() -> 'LanguageServer':
     # ==========================================================================
 
     @server.feature(types.TEXT_DOCUMENT_HOVER)
-    def hover(params: types.HoverParams) -> Optional[types.Hover]:
+    def hover(params: types.HoverParams) -> types.Hover | None:
         """Handle hover request."""
         uri = params.text_document.uri
         position = params.position
@@ -246,7 +243,7 @@ def create_server() -> 'LanguageServer':
     # ==========================================================================
 
     @server.feature(types.TEXT_DOCUMENT_DEFINITION)
-    def definition(params: types.DefinitionParams) -> Optional[types.Location]:
+    def definition(params: types.DefinitionParams) -> types.Location | None:
         """Handle go to definition request."""
         uri = params.text_document.uri
         position = params.position
@@ -296,7 +293,7 @@ def create_server() -> 'LanguageServer':
     # ==========================================================================
 
     @server.feature(types.TEXT_DOCUMENT_CODE_ACTION)
-    def code_action(params: types.CodeActionParams) -> Optional[List[types.CodeAction]]:
+    def code_action(params: types.CodeActionParams) -> list[types.CodeAction] | None:
         """Handle code action request."""
         uri = params.text_document.uri
         diagnostics = params.context.diagnostics
@@ -314,7 +311,7 @@ def create_server() -> 'LanguageServer':
     # ==========================================================================
 
     @server.feature(types.TEXT_DOCUMENT_SIGNATURE_HELP)
-    def signature_help(params: types.SignatureHelpParams) -> Optional[types.SignatureHelp]:
+    def signature_help(params: types.SignatureHelpParams) -> types.SignatureHelp | None:
         """Handle signature help request."""
         uri = params.text_document.uri
         position = params.position
@@ -339,7 +336,7 @@ def create_server() -> 'LanguageServer':
     # ==========================================================================
 
     @server.feature(types.TEXT_DOCUMENT_DOCUMENT_SYMBOL)
-    def document_symbol(params: types.DocumentSymbolParams) -> List[types.DocumentSymbol]:
+    def document_symbol(params: types.DocumentSymbolParams) -> list[types.DocumentSymbol]:
         """Handle document symbol request."""
         uri = params.text_document.uri
         text = documents.get(uri, '')
@@ -356,7 +353,7 @@ def create_server() -> 'LanguageServer':
     # ==========================================================================
 
     @server.feature(types.TEXT_DOCUMENT_FORMATTING)
-    def formatting(params: types.DocumentFormattingParams) -> List[types.TextEdit]:
+    def formatting(params: types.DocumentFormattingParams) -> list[types.TextEdit]:
         """Handle document formatting request."""
         uri = params.text_document.uri
         text = documents.get(uri, '')

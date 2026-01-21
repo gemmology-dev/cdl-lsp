@@ -5,9 +5,9 @@ This module provides snippet completions that expand gemstone names
 into full CDL definitions with metadata.
 """
 
-import sys
 import os
-from typing import List, Any, Optional
+import sys
+from typing import Any
 
 # Add scripts directory to path for imports
 _scripts_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'scripts')
@@ -87,7 +87,7 @@ def _create_snippet_item(
     )
 
 
-def get_preset_snippets(prefix: str = '') -> List[Any]:
+def get_preset_snippets(prefix: str = '') -> list[Any]:
     """
     Generate snippet completions from crystal presets.
 
@@ -119,7 +119,7 @@ def get_preset_snippets(prefix: str = '') -> List[Any]:
     return items
 
 
-def get_snippet_for_preset(preset_name: str) -> Optional[str]:
+def get_snippet_for_preset(preset_name: str) -> str | None:
     """
     Get the CDL snippet for a specific preset.
 
@@ -136,7 +136,7 @@ def get_snippet_for_preset(preset_name: str) -> Optional[str]:
     return None
 
 
-def list_preset_names() -> List[str]:
+def list_preset_names() -> list[str]:
     """Get list of all available preset names."""
     presets = _get_presets()
     return sorted(presets.keys())

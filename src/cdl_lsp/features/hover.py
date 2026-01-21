@@ -6,7 +6,7 @@ like crystal systems, point groups, forms, and twin laws.
 """
 
 import re
-from typing import Optional, Any, Tuple
+from typing import Any
 
 try:
     from lsprotocol import types
@@ -14,13 +14,21 @@ except ImportError:
     types = None
 
 from ..constants import (
-    CRYSTAL_SYSTEMS, ALL_POINT_GROUPS, NAMED_FORMS, TWIN_LAWS, MODIFICATIONS,
-    SYSTEM_DOCS, POINT_GROUP_DOCS, FORM_DOCS, TWIN_LAW_DOCS, MODIFICATION_DOCS,
-    get_system_for_point_group
+    ALL_POINT_GROUPS,
+    CRYSTAL_SYSTEMS,
+    FORM_DOCS,
+    MODIFICATION_DOCS,
+    MODIFICATIONS,
+    NAMED_FORMS,
+    POINT_GROUP_DOCS,
+    SYSTEM_DOCS,
+    TWIN_LAW_DOCS,
+    TWIN_LAWS,
+    get_system_for_point_group,
 )
 
 
-def _get_word_at_position(line: str, col: int) -> Tuple[str, int, int]:
+def _get_word_at_position(line: str, col: int) -> tuple[str, int, int]:
     """
     Get the word at the given column position.
 
@@ -56,7 +64,7 @@ def _get_word_at_position(line: str, col: int) -> Tuple[str, int, int]:
     return (word, start, end)
 
 
-def _get_miller_at_position(line: str, col: int) -> Optional[Tuple[str, int, int]]:
+def _get_miller_at_position(line: str, col: int) -> tuple[str, int, int] | None:
     """
     Check if position is inside a Miller index and return it.
 
@@ -99,7 +107,7 @@ def get_hover_info(
     line: str,
     col: int,
     line_num: int = 0
-) -> Optional[Any]:
+) -> Any | None:
     """
     Get hover information for the position.
 
