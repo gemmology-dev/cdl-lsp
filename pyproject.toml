@@ -1,5 +1,5 @@
 [project]
-name = "cdl-lsp"
+name = "gemmology-cdl-lsp"
 version = "1.0.0"
 description = "Language Server Protocol implementation for Crystal Description Language"
 readme = "README.md"
@@ -36,7 +36,7 @@ classifiers = [
     "Typing :: Typed"
 ]
 dependencies = [
-    "cdl-parser>=1.0.0",
+    "gemmology-cdl-parser>=1.0.0",
     "pygls>=1.0.0",
     "lsprotocol>=2023.0.0",
 ]
@@ -59,13 +59,13 @@ dev = [
     "mypy>=1.0"
 ]
 preview = [
-    "crystal-geometry>=1.0.0",
-    "crystal-renderer>=1.0.0",
+    "gemmology-crystal-geometry>=1.0.0",
+    "gemmology-crystal-renderer>=1.0.0",
 ]
 all = [
-    "crystal-geometry>=1.0.0",
-    "crystal-renderer>=1.0.0",
-    "mineral-database>=1.0.0",
+    "gemmology-crystal-geometry>=1.0.0",
+    "gemmology-crystal-renderer>=1.0.0",
+    "gemmology-mineral-database>=1.0.0",
 ]
 
 [build-system]
