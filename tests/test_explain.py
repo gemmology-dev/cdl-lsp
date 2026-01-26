@@ -132,8 +132,11 @@ class TestExtractModifications:
         """No modifications in simple CDL."""
         mods = _extract_modifications("cubic[m3m]:{111}")
         # Should be empty or only contain non-matching items
-        assert len(mods) == 0 or all(m["name"] not in ["elongate", "truncate", "taper", "bevel"]
-                                      for m in mods if m.get("name"))
+        assert len(mods) == 0 or all(
+            m["name"] not in ["elongate", "truncate", "taper", "bevel"]
+            for m in mods
+            if m.get("name")
+        )
 
 
 class TestExtractTwin:

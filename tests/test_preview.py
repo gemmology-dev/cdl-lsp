@@ -5,8 +5,8 @@ Tests SVG and 3D preview generation.
 """
 
 from cdl_lsp.features.preview import (
-    PREVIEW_AVAILABLE,
     GLTF_AVAILABLE,
+    PREVIEW_AVAILABLE,
     _create_error_svg,
     _resolve_preset_to_cdl,
     get_preview_capabilities,
@@ -28,8 +28,8 @@ class TestCreateErrorSVG:
     def test_custom_dimensions(self):
         """Generate error SVG with custom dimensions."""
         svg = _create_error_svg("Error", width=800, height=600)
-        assert '800' in svg
-        assert '600' in svg
+        assert "800" in svg
+        assert "600" in svg
 
     def test_special_characters_escaped(self):
         """Special characters are escaped."""
