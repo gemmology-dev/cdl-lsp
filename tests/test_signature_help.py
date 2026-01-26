@@ -4,8 +4,6 @@ Test suite for CDL signature help features.
 Tests parameter hints for modifications and twins.
 """
 
-import pytest
-
 from cdl_lsp.features.signature_help import (
     MODIFICATION_SIGNATURES,
     _find_active_modification,
@@ -112,9 +110,10 @@ class TestGetSignatureHelp:
 
     def test_inside_modification(self):
         """Inside modification may return help."""
-        result = get_signature_help("elongate(", 9)
+        _result = get_signature_help("elongate(", 9)
         # Depends on whether lsprotocol is available
         # Just verify it doesn't crash
+        assert _result is None or hasattr(_result, "signatures")
 
 
 class TestTriggerCharacters:

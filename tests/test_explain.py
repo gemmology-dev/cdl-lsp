@@ -4,8 +4,6 @@ Test suite for CDL explain features.
 Tests explanation generation for CDL documents.
 """
 
-import pytest
-
 from cdl_lsp.features.explain import (
     _extract_forms,
     _extract_modifications,

@@ -4,8 +4,6 @@ Test suite for CDL document symbols features.
 Tests outline view generation for CDL documents.
 """
 
-import pytest
-
 from cdl_lsp.features.document_symbols import (
     _extract_children,
     _parse_cdl_line,

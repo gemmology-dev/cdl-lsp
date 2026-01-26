@@ -4,8 +4,6 @@ Test suite for CDL preview features.
 Tests SVG and 3D preview generation.
 """
 
-import pytest
-
 from cdl_lsp.features.preview import (
     PREVIEW_AVAILABLE,
     GLTF_AVAILABLE,

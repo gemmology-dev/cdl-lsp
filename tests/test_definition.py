@@ -4,8 +4,6 @@ Test suite for CDL definition features.
 Tests go-to-definition functionality for CDL elements.
 """
 
-import pytest
-
 from cdl_lsp.features.definition import (
     _get_word_at_position,
     get_definition,

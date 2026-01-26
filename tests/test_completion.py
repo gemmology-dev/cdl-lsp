@@ -4,8 +4,6 @@ Test suite for CDL completion features.
 Tests context detection and completion generation for all CDL contexts.
 """
 
-import pytest
-
 from cdl_lsp.features.completion import (
     CompletionContext,
     _detect_context,
