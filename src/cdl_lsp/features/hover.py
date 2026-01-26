@@ -47,7 +47,7 @@ def _get_word_at_position(line: str, col: int) -> tuple[str, int, int]:
 
     # Find word boundaries
     # Words can contain alphanumerics, underscores, hyphens, and slashes (for point groups)
-    word_chars = set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-/')
+    word_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-/")
 
     start = col
     end = col
@@ -76,7 +76,7 @@ def _get_miller_at_position(line: str, col: int) -> tuple[str, int, int] | None:
         Tuple of (miller_string, start, end) or None
     """
     # Find Miller index boundaries
-    for match in re.finditer(r'\{[^}]+\}', line):
+    for match in re.finditer(r"\{[^}]+\}", line):
         if match.start() <= col <= match.end():
             return (match.group(0), match.start(), match.end())
     return None
@@ -86,28 +86,23 @@ def _create_hover(content: str, start: int, end: int, line: int) -> Any:
     """Create an LSP Hover object."""
     if types is None:
         return {
-            'contents': content,
-            'range': {'start': {'line': line, 'character': start},
-                      'end': {'line': line, 'character': end}}
+            "contents": content,
+            "range": {
+                "start": {"line": line, "character": start},
+                "end": {"line": line, "character": end},
+            },
         }
 
     return types.Hover(
-        contents=types.MarkupContent(
-            kind=types.MarkupKind.Markdown,
-            value=content
-        ),
+        contents=types.MarkupContent(kind=types.MarkupKind.Markdown, value=content),
         range=types.Range(
             start=types.Position(line=line, character=start),
-            end=types.Position(line=line, character=end)
-        )
+            end=types.Position(line=line, character=end),
+        ),
     )
 
 
-def get_hover_info(
-    line: str,
-    col: int,
-    line_num: int = 0
-) -> Any | None:
+def get_hover_info(line: str, col: int, line_num: int = 0) -> Any | None:
     """
     Get hover information for the position.
 
@@ -172,13 +167,13 @@ def get_hover_info(
             return _create_hover(content, start, end, line_num)
 
     # Check for 'twin' keyword
-    if word_lower == 'twin':
-        content = MODIFICATION_DOCS.get('twin')
+    if word_lower == "twin":
+        content = MODIFICATION_DOCS.get("twin")
         if content:
             return _create_hover(content, start, end, line_num)
 
     # Check for scale value (@N.N)
-    scale_match = re.search(r'@(\d+\.?\d*)', line)
+    scale_match = re.search(r"@(\d+\.?\d*)", line)
     if scale_match and scale_match.start() <= col <= scale_match.end():
         scale = float(scale_match.group(1))
         content = _get_scale_hover(scale)
@@ -196,14 +191,14 @@ def _get_miller_hover(miller_str: str) -> str:
     for form_name, indices in NAMED_FORMS.items():
         miller_repr = f"{{{indices[0]}{indices[1]}{indices[2]}}}"
         if miller_str == miller_repr:
-            doc = FORM_DOCS.get(form_name, '')
+            doc = FORM_DOCS.get(form_name, "")
             return f"**Miller Index {miller_str}**\n\nNamed form: **{form_name}**\n\n{doc}"
 
     # Count faces based on system (approximate)
     content = f"**Miller Index {miller_str}**\n\n"
 
     # Check if it's 4-index (Miller-Bravais)
-    digits = re.findall(r'-?\d', inner)
+    digits = re.findall(r"-?\d", inner)
     if len(digits) == 4:
         content += "Miller-Bravais notation (hexagonal/trigonal system)\n\n"
         content += "The third index `i` satisfies `i = -(h+k)`"

@@ -2,7 +2,6 @@
 Tests for CDL LSP Hover functionality.
 """
 
-
 from cdl_lsp.features.hover import _get_word_at_position, get_hover_info
 
 
@@ -42,7 +41,7 @@ class TestHoverCrystalSystems:
         """Hover on 'cubic' returns system documentation."""
         hover = get_hover_info("cubic[m3m]:{111}", 2)
         assert hover is not None
-        content = hover.get('contents') if isinstance(hover, dict) else hover.contents.value
+        content = hover.get("contents") if isinstance(hover, dict) else hover.contents.value
         assert "Cubic" in content
         assert "Isometric" in content
 
@@ -50,14 +49,14 @@ class TestHoverCrystalSystems:
         """Hover on 'hexagonal' returns system documentation."""
         hover = get_hover_info("hexagonal[6/mmm]", 4)
         assert hover is not None
-        content = hover.get('contents') if isinstance(hover, dict) else hover.contents.value
+        content = hover.get("contents") if isinstance(hover, dict) else hover.contents.value
         assert "Hexagonal" in content
 
     def test_trigonal_system(self):
         """Hover on 'trigonal' returns system documentation."""
         hover = get_hover_info("trigonal[-3m]:{10-11}", 4)
         assert hover is not None
-        content = hover.get('contents') if isinstance(hover, dict) else hover.contents.value
+        content = hover.get("contents") if isinstance(hover, dict) else hover.contents.value
         assert "Trigonal" in content
 
 
@@ -68,7 +67,7 @@ class TestHoverPointGroups:
         """Hover on 'm3m' returns point group documentation."""
         hover = get_hover_info("cubic[m3m]:{111}", 7)
         assert hover is not None
-        content = hover.get('contents') if isinstance(hover, dict) else hover.contents.value
+        content = hover.get("contents") if isinstance(hover, dict) else hover.contents.value
         assert "m3m" in content
         assert "cubic" in content.lower()
 
@@ -76,7 +75,7 @@ class TestHoverPointGroups:
         """Hover on '6/mmm' returns point group documentation."""
         hover = get_hover_info("hexagonal[6/mmm]", 12)
         assert hover is not None
-        content = hover.get('contents') if isinstance(hover, dict) else hover.contents.value
+        content = hover.get("contents") if isinstance(hover, dict) else hover.contents.value
         assert "6/mmm" in content
 
 
@@ -87,7 +86,7 @@ class TestHoverNamedForms:
         """Hover on 'octahedron' returns form documentation."""
         hover = get_hover_info("cubic[m3m]:octahedron@1.0", 15)
         assert hover is not None
-        content = hover.get('contents') if isinstance(hover, dict) else hover.contents.value
+        content = hover.get("contents") if isinstance(hover, dict) else hover.contents.value
         assert "Octahedron" in content
         assert "111" in content
 
@@ -95,7 +94,7 @@ class TestHoverNamedForms:
         """Hover on 'cube' returns form documentation."""
         hover = get_hover_info("cubic[m3m]:cube@1.0", 12)
         assert hover is not None
-        content = hover.get('contents') if isinstance(hover, dict) else hover.contents.value
+        content = hover.get("contents") if isinstance(hover, dict) else hover.contents.value
         assert "Cube" in content
 
 
@@ -106,7 +105,7 @@ class TestHoverMillerIndices:
         """Hover on {111} returns Miller index documentation."""
         hover = get_hover_info("cubic[m3m]:{111}@1.0", 12)
         assert hover is not None
-        content = hover.get('contents') if isinstance(hover, dict) else hover.contents.value
+        content = hover.get("contents") if isinstance(hover, dict) else hover.contents.value
         assert "Miller" in content
         assert "111" in content
 
@@ -114,7 +113,7 @@ class TestHoverMillerIndices:
         """Hover on {10-10} returns Miller-Bravais documentation."""
         hover = get_hover_info("hexagonal[6/mmm]:{10-10}", 20)
         assert hover is not None
-        content = hover.get('contents') if isinstance(hover, dict) else hover.contents.value
+        content = hover.get("contents") if isinstance(hover, dict) else hover.contents.value
         assert "Miller" in content
 
 
@@ -125,7 +124,7 @@ class TestHoverTwinLaws:
         """Hover on 'spinel' twin law returns documentation."""
         hover = get_hover_info("cubic[m3m]:{111} | twin(spinel)", 28)
         assert hover is not None
-        content = hover.get('contents') if isinstance(hover, dict) else hover.contents.value
+        content = hover.get("contents") if isinstance(hover, dict) else hover.contents.value
         assert "Spinel" in content
         assert "111" in content or "twin" in content.lower()
 
@@ -133,7 +132,7 @@ class TestHoverTwinLaws:
         """Hover on 'brazil' twin law returns documentation."""
         hover = get_hover_info("trigonal[32]:{10-11} | twin(brazil)", 32)
         assert hover is not None
-        content = hover.get('contents') if isinstance(hover, dict) else hover.contents.value
+        content = hover.get("contents") if isinstance(hover, dict) else hover.contents.value
         assert "Brazil" in content
 
 
@@ -148,7 +147,7 @@ class TestHoverScale:
         # 0123456789012345678901
         hover = get_hover_info("cubic[m3m]:{111}@1.5", 19)
         assert hover is not None
-        content = hover.get('contents') if isinstance(hover, dict) else hover.contents.value
+        content = hover.get("contents") if isinstance(hover, dict) else hover.contents.value
         assert "Scale" in content
         assert "1.5" in content
 
@@ -157,7 +156,7 @@ class TestHoverScale:
         # Position 18 is on the '5' of @0.5 (avoiding '0' which might not match)
         hover = get_hover_info("cubic[m3m]:{111}@0.5", 18)
         assert hover is not None
-        content = hover.get('contents') if isinstance(hover, dict) else hover.contents.value
+        content = hover.get("contents") if isinstance(hover, dict) else hover.contents.value
         assert "closer" in content.lower() or "dominant" in content.lower()
 
 
@@ -168,7 +167,7 @@ class TestHoverModifications:
         """Hover on 'twin' keyword returns documentation."""
         hover = get_hover_info("cubic[m3m]:{111} | twin(spinel)", 20)
         assert hover is not None
-        content = hover.get('contents') if isinstance(hover, dict) else hover.contents.value
+        content = hover.get("contents") if isinstance(hover, dict) else hover.contents.value
         assert "twin" in content.lower()
 
 

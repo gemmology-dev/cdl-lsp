@@ -12,6 +12,7 @@ from typing import Any
 # Import cdl_parser for parsing
 try:
     from cdl_parser import parse_cdl as _parse_cdl
+
     CDL_PARSER_AVAILABLE = True
 except ImportError:
     CDL_PARSER_AVAILABLE = False
@@ -34,10 +35,12 @@ from ..constants import (
 # Try to import presets for validation
 try:
     from crystal_presets import CRYSTAL_PRESETS, list_presets
+
     PRESETS_AVAILABLE = True
 except ImportError:
     CRYSTAL_PRESETS = {}
     PRESETS_AVAILABLE = False
+
     def list_presets(category=None):
         return []
 
@@ -45,6 +48,7 @@ except ImportError:
 @dataclass
 class DiagnosticInfo:
     """Diagnostic information without LSP types dependency."""
+
     line: int
     start_char: int
     end_char: int
@@ -61,10 +65,10 @@ def _get_severity(severity_str: str) -> Any:
         return severity_str
 
     severity_map = {
-        'error': types.DiagnosticSeverity.Error,
-        'warning': types.DiagnosticSeverity.Warning,
-        'information': types.DiagnosticSeverity.Information,
-        'hint': types.DiagnosticSeverity.Hint,
+        "error": types.DiagnosticSeverity.Error,
+        "warning": types.DiagnosticSeverity.Warning,
+        "information": types.DiagnosticSeverity.Information,
+        "hint": types.DiagnosticSeverity.Hint,
     }
     return severity_map.get(severity_str, types.DiagnosticSeverity.Error)
 
@@ -77,13 +81,13 @@ def _create_diagnostic(info: DiagnosticInfo) -> Any:
     return types.Diagnostic(
         range=types.Range(
             start=types.Position(line=info.line, character=info.start_char),
-            end=types.Position(line=info.line, character=info.end_char)
+            end=types.Position(line=info.line, character=info.end_char),
         ),
         message=info.message,
         severity=_get_severity(info.severity),
         source=info.source,
         code=info.code,
-        data=info.data
+        data=info.data,
     )
 
 
@@ -94,7 +98,7 @@ def _find_position(text: str, char_pos: int) -> tuple[int, int]:
     for i, ch in enumerate(text):
         if i == char_pos:
             return (line, col)
-        if ch == '\n':
+        if ch == "\n":
             line += 1
             col = 0
         else:
@@ -105,7 +109,7 @@ def _find_position(text: str, char_pos: int) -> tuple[int, int]:
 def _extract_error_position(error_msg: str) -> int | None:
     """Extract position from parser error message."""
     # Pattern: "at position N"
-    match = re.search(r'at position (\d+)', error_msg)
+    match = re.search(r"at position (\d+)", error_msg)
     if match:
         return int(match.group(1))
     return None
@@ -132,13 +136,13 @@ def validate_document(text: str) -> list[DiagnosticInfo]:
         return diagnostics
 
     # Process each line separately for multi-line CDL support
-    lines = text.split('\n')
+    lines = text.split("\n")
 
     for line_num, line_text in enumerate(lines):
         line_text = line_text.strip()
 
         # Skip empty lines and comments
-        if not line_text or line_text.startswith('#'):
+        if not line_text or line_text.startswith("#"):
             continue
 
         # Validate the line
@@ -186,32 +190,38 @@ def _validate_cdl_line(line_text: str, line_num: int) -> list[DiagnosticInfo]:
             if pos is not None:
                 # Use exact position from error
                 end_pos = min(pos + 10, len(line_text))
-                diagnostics.append(DiagnosticInfo(
-                    line=line_num,
-                    start_char=pos,
-                    end_char=end_pos,
-                    message=error_msg,
-                    severity='error'
-                ))
+                diagnostics.append(
+                    DiagnosticInfo(
+                        line=line_num,
+                        start_char=pos,
+                        end_char=end_pos,
+                        message=error_msg,
+                        severity="error",
+                    )
+                )
             else:
                 # Fallback to full line
-                diagnostics.append(DiagnosticInfo(
-                    line=line_num,
-                    start_char=0,
-                    end_char=len(line_text),
-                    message=error_msg,
-                    severity='error'
-                ))
+                diagnostics.append(
+                    DiagnosticInfo(
+                        line=line_num,
+                        start_char=0,
+                        end_char=len(line_text),
+                        message=error_msg,
+                        severity="error",
+                    )
+                )
             return diagnostics
         except Exception as e:
             # Unexpected error
-            diagnostics.append(DiagnosticInfo(
-                line=line_num,
-                start_char=0,
-                end_char=len(line_text),
-                message=f"Unexpected error: {str(e)}",
-                severity='error'
-            ))
+            diagnostics.append(
+                DiagnosticInfo(
+                    line=line_num,
+                    start_char=0,
+                    end_char=len(line_text),
+                    message=f"Unexpected error: {str(e)}",
+                    severity="error",
+                )
+            )
             return diagnostics
 
     # Additional semantic validation (for valid parses)
@@ -225,46 +235,52 @@ def _semantic_validation(line_text: str, line_num: int) -> list[DiagnosticInfo]:
     diagnostics: list[DiagnosticInfo] = []
 
     # Check for unusually large scale values
-    scale_pattern = r'@(\d+\.?\d*)'
+    scale_pattern = r"@(\d+\.?\d*)"
     for match in re.finditer(scale_pattern, line_text):
         scale = float(match.group(1))
         if scale > 5.0:
-            diagnostics.append(DiagnosticInfo(
-                line=line_num,
-                start_char=match.start(),
-                end_char=match.end(),
-                message=f"Scale value {scale} is unusually large (typical range: 0.1-3.0)",
-                severity='warning',
-                code='scale-large',
-                data={'suggested': '@3.0', 'original': match.group(0)}
-            ))
+            diagnostics.append(
+                DiagnosticInfo(
+                    line=line_num,
+                    start_char=match.start(),
+                    end_char=match.end(),
+                    message=f"Scale value {scale} is unusually large (typical range: 0.1-3.0)",
+                    severity="warning",
+                    code="scale-large",
+                    data={"suggested": "@3.0", "original": match.group(0)},
+                )
+            )
         elif scale < 0.1:
-            diagnostics.append(DiagnosticInfo(
-                line=line_num,
-                start_char=match.start(),
-                end_char=match.end(),
-                message=f"Scale value {scale} is unusually small (typical range: 0.1-3.0)",
-                severity='warning',
-                code='scale-small',
-                data={'suggested': '@0.1', 'original': match.group(0)}
-            ))
+            diagnostics.append(
+                DiagnosticInfo(
+                    line=line_num,
+                    start_char=match.start(),
+                    end_char=match.end(),
+                    message=f"Scale value {scale} is unusually small (typical range: 0.1-3.0)",
+                    severity="warning",
+                    code="scale-small",
+                    data={"suggested": "@0.1", "original": match.group(0)},
+                )
+            )
 
     # Check for system-point group mismatch (if we can identify them)
-    system_match = re.match(r'(\w+)\s*\[(\S+)\]', line_text)
+    system_match = re.match(r"(\w+)\s*\[(\S+)\]", line_text)
     if system_match:
         system = system_match.group(1).lower()
         pg = system_match.group(2)
 
         if system in CRYSTAL_SYSTEMS and pg in ALL_POINT_GROUPS:
             if not validate_point_group_for_system(system, pg):
-                diagnostics.append(DiagnosticInfo(
-                    line=line_num,
-                    start_char=system_match.start(2),
-                    end_char=system_match.end(2),
-                    message=f"Point group '{pg}' is not valid for {system} system. "
-                            f"Valid groups: {', '.join(sorted(POINT_GROUPS[system]))}",
-                    severity='error'
-                ))
+                diagnostics.append(
+                    DiagnosticInfo(
+                        line=line_num,
+                        start_char=system_match.start(2),
+                        end_char=system_match.end(2),
+                        message=f"Point group '{pg}' is not valid for {system} system. "
+                        f"Valid groups: {', '.join(sorted(POINT_GROUPS[system]))}",
+                        severity="error",
+                    )
+                )
 
     # Note: Typo checks are now run before parsing in _validate_cdl_line
     # to ensure proper code/data fields are set for code actions
@@ -276,73 +292,77 @@ def _check_form_typos(line_text: str, line_num: int, diagnostics: list[Diagnosti
     """Check for common form name typos."""
     # Common typos
     typos = {
-        'octohedron': 'octahedron',
-        'octahedon': 'octahedron',
-        'dodecahedrom': 'dodecahedron',
-        'dodecahedon': 'dodecahedron',
-        'trisoctohedron': 'trisoctahedron',
-        'hexoctohedron': 'hexoctahedron',
-        'trapezohedon': 'trapezohedron',
-        'rhombohedon': 'rhombohedron',
-        'rhombohedrom': 'rhombohedron',
-        'scalenohedon': 'scalenohedron',
-        'dipyrmaid': 'dipyramid',
-        'dipyrmid': 'dipyramid',
-        'pinaciod': 'pinacoid',
+        "octohedron": "octahedron",
+        "octahedon": "octahedron",
+        "dodecahedrom": "dodecahedron",
+        "dodecahedon": "dodecahedron",
+        "trisoctohedron": "trisoctahedron",
+        "hexoctohedron": "hexoctahedron",
+        "trapezohedon": "trapezohedron",
+        "rhombohedon": "rhombohedron",
+        "rhombohedrom": "rhombohedron",
+        "scalenohedon": "scalenohedron",
+        "dipyrmaid": "dipyramid",
+        "dipyrmid": "dipyramid",
+        "pinaciod": "pinacoid",
     }
 
     # Extract identifiers from line
-    for word in re.findall(r'\b([a-z_]+)\b', line_text.lower()):
+    for word in re.findall(r"\b([a-z_]+)\b", line_text.lower()):
         if word in typos:
             start = line_text.lower().find(word)
             if start >= 0:
                 suggested = typos[word]
-                diagnostics.append(DiagnosticInfo(
-                    line=line_num,
-                    start_char=start,
-                    end_char=start + len(word),
-                    message=f"Unknown form '{word}'. Did you mean '{suggested}'?",
-                    severity='error',
-                    code='typo-form',
-                    data={'suggested': suggested, 'original': word}
-                ))
+                diagnostics.append(
+                    DiagnosticInfo(
+                        line=line_num,
+                        start_char=start,
+                        end_char=start + len(word),
+                        message=f"Unknown form '{word}'. Did you mean '{suggested}'?",
+                        severity="error",
+                        code="typo-form",
+                        data={"suggested": suggested, "original": word},
+                    )
+                )
 
 
 def _check_twin_typos(line_text: str, line_num: int, diagnostics: list[DiagnosticInfo]) -> None:
     """Check for common twin law typos."""
     # Look for twin() calls
-    twin_match = re.search(r'twin\s*\(\s*(\w+)', line_text)
+    twin_match = re.search(r"twin\s*\(\s*(\w+)", line_text)
     if twin_match:
         law_name = twin_match.group(1).lower()
 
         # Check common typos
         typos = {
-            'spinell': 'spinel',
-            'spinel_law': 'spinel',  # Alternative name
-            'brazill': 'brazil',
-            'dauphina': 'dauphine',
-            'dauphene': 'dauphine',
-            'japn': 'japan',
-            'carlsbadt': 'carlsbad',
-            'carlsbadh': 'carlsbad',
-            'bavenow': 'baveno',
-            'mannebach': 'manebach',
-            'albight': 'albite',
-            'albit': 'albite',
+            "spinell": "spinel",
+            "spinel_law": "spinel",  # Alternative name
+            "brazill": "brazil",
+            "dauphina": "dauphine",
+            "dauphene": "dauphine",
+            "japn": "japan",
+            "carlsbadt": "carlsbad",
+            "carlsbadh": "carlsbad",
+            "bavenow": "baveno",
+            "mannebach": "manebach",
+            "albight": "albite",
+            "albit": "albite",
         }
 
         if law_name in typos and law_name not in TWIN_LAWS:
             start = twin_match.start(1)
             suggested = typos[law_name]
-            diagnostics.append(DiagnosticInfo(
-                line=line_num,
-                start_char=start,
-                end_char=start + len(law_name),
-                message=f"Unknown twin law '{law_name}'. Did you mean '{suggested}'?",
-                severity='error',
-                code='typo-twin',
-                data={'suggested': suggested, 'original': law_name}
-            ))
+            diagnostics.append(
+                DiagnosticInfo(
+                    line=line_num,
+                    start_char=start,
+                    end_char=start + len(law_name),
+                    message=f"Unknown twin law '{law_name}'. Did you mean '{suggested}'?",
+                    severity="error",
+                    code="typo-twin",
+                    data={"suggested": suggested, "original": law_name},
+                )
+            )
 
 
 def _check_missing_colon(line_text: str, line_num: int, diagnostics: list[DiagnosticInfo]) -> None:
@@ -352,109 +372,117 @@ def _check_missing_colon(line_text: str, line_num: int, diagnostics: list[Diagno
     """
     # Pattern: system[pg]{forms} - missing colon before brace
     # Match: word, optional whitespace, [...], optional whitespace, { (without colon)
-    pattern = r'(\w+)\s*\[[^\]]+\]\s*(\{)'
+    pattern = r"(\w+)\s*\[[^\]]+\]\s*(\{)"
 
     for match in re.finditer(pattern, line_text):
         # Check that there's no colon between ] and {
-        bracket_end = line_text.find(']', match.start()) + 1
+        bracket_end = line_text.find("]", match.start()) + 1
         brace_start = match.start(2)
         between = line_text[bracket_end:brace_start]
 
-        if ':' not in between:
-            diagnostics.append(DiagnosticInfo(
-                line=line_num,
-                start_char=brace_start,
-                end_char=brace_start + 1,
-                message="Missing colon before forms. Expected ':' before '{'",
-                severity='error',
-                code='missing-colon',
-                data={'insert_pos': brace_start, 'insert_text': ':'}
-            ))
+        if ":" not in between:
+            diagnostics.append(
+                DiagnosticInfo(
+                    line=line_num,
+                    start_char=brace_start,
+                    end_char=brace_start + 1,
+                    message="Missing colon before forms. Expected ':' before '{'",
+                    severity="error",
+                    code="missing-colon",
+                    data={"insert_pos": brace_start, "insert_text": ":"},
+                )
+            )
 
 
 def _check_system_typos(line_text: str, line_num: int, diagnostics: list[DiagnosticInfo]) -> None:
     """Check for common crystal system typos."""
     typos = {
-        'cubik': 'cubic',
-        'cubci': 'cubic',
-        'cubiс': 'cubic',  # Cyrillic с
-        'hexagnal': 'hexagonal',
-        'hexagnol': 'hexagonal',
-        'hexogonal': 'hexagonal',
-        'tetragnol': 'tetragonal',
-        'tetragnal': 'tetragonal',
-        'tetragonl': 'tetragonal',
-        'trignoal': 'trigonal',
-        'trignol': 'trigonal',
-        'trigonl': 'trigonal',
-        'monoclinc': 'monoclinic',
-        'monoclinik': 'monoclinic',
-        'monoclinoc': 'monoclinic',
-        'orthrhombic': 'orthorhombic',
-        'orthorhombc': 'orthorhombic',
-        'orthorhombik': 'orthorhombic',
-        'orthohombic': 'orthorhombic',
-        'triclinc': 'triclinic',
-        'triclinik': 'triclinic',
-        'triclnic': 'triclinic',
+        "cubik": "cubic",
+        "cubci": "cubic",
+        "cubiс": "cubic",  # Cyrillic с
+        "hexagnal": "hexagonal",
+        "hexagnol": "hexagonal",
+        "hexogonal": "hexagonal",
+        "tetragnol": "tetragonal",
+        "tetragnal": "tetragonal",
+        "tetragonl": "tetragonal",
+        "trignoal": "trigonal",
+        "trignol": "trigonal",
+        "trigonl": "trigonal",
+        "monoclinc": "monoclinic",
+        "monoclinik": "monoclinic",
+        "monoclinoc": "monoclinic",
+        "orthrhombic": "orthorhombic",
+        "orthorhombc": "orthorhombic",
+        "orthorhombik": "orthorhombic",
+        "orthohombic": "orthorhombic",
+        "triclinc": "triclinic",
+        "triclinik": "triclinic",
+        "triclnic": "triclinic",
     }
 
     # Look for system at start of CDL (word followed by [)
-    match = re.match(r'(\w+)\s*\[', line_text)
+    match = re.match(r"(\w+)\s*\[", line_text)
     if match:
         system = match.group(1).lower()
         if system in typos:
             suggested = typos[system]
-            diagnostics.append(DiagnosticInfo(
-                line=line_num,
-                start_char=match.start(1),
-                end_char=match.end(1),
-                message=f"Unknown crystal system '{system}'. Did you mean '{suggested}'?",
-                severity='error',
-                code='typo-system',
-                data={'suggested': suggested, 'original': system}
-            ))
+            diagnostics.append(
+                DiagnosticInfo(
+                    line=line_num,
+                    start_char=match.start(1),
+                    end_char=match.end(1),
+                    message=f"Unknown crystal system '{system}'. Did you mean '{suggested}'?",
+                    severity="error",
+                    code="typo-system",
+                    data={"suggested": suggested, "original": system},
+                )
+            )
 
 
-def _check_modification_typos(line_text: str, line_num: int, diagnostics: list[DiagnosticInfo]) -> None:
+def _check_modification_typos(
+    line_text: str, line_num: int, diagnostics: list[DiagnosticInfo]
+) -> None:
     """Check for common modification typos."""
     typos = {
-        'elognate': 'elongate',
-        'elongte': 'elongate',
-        'elogante': 'elongate',
-        'truncat': 'truncate',
-        'truncte': 'truncate',
-        'truincate': 'truncate',
-        'tapir': 'taper',
-        'tapper': 'taper',
-        'tapr': 'taper',
-        'bevle': 'bevel',
-        'bevl': 'bevel',
-        'bevell': 'bevel',
-        'twinn': 'twin',
-        'twinned': 'twin',
-        'twim': 'twin',
-        'flattn': 'flatten',
-        'flaten': 'flatten',
-        'flattten': 'flatten',
+        "elognate": "elongate",
+        "elongte": "elongate",
+        "elogante": "elongate",
+        "truncat": "truncate",
+        "truncte": "truncate",
+        "truincate": "truncate",
+        "tapir": "taper",
+        "tapper": "taper",
+        "tapr": "taper",
+        "bevle": "bevel",
+        "bevl": "bevel",
+        "bevell": "bevel",
+        "twinn": "twin",
+        "twinned": "twin",
+        "twim": "twin",
+        "flattn": "flatten",
+        "flaten": "flatten",
+        "flattten": "flatten",
     }
 
     # Look for modification keywords (standalone or in + operations)
-    for word in re.findall(r'\b([a-z]+)\b', line_text.lower()):
+    for word in re.findall(r"\b([a-z]+)\b", line_text.lower()):
         if word in typos:
             # Find position of this word
-            pattern = rf'\b{re.escape(word)}\b'
+            pattern = rf"\b{re.escape(word)}\b"
             for match in re.finditer(pattern, line_text, re.IGNORECASE):
                 suggested = typos[word]
-                diagnostics.append(DiagnosticInfo(
-                    line=line_num,
-                    start_char=match.start(),
-                    end_char=match.end(),
-                    message=f"Unknown modification '{word}'. Did you mean '{suggested}'?",
-                    severity='error',
-                    code='typo-modification',
-                    data={'suggested': suggested, 'original': word}
-                ))
+                diagnostics.append(
+                    DiagnosticInfo(
+                        line=line_num,
+                        start_char=match.start(),
+                        end_char=match.end(),
+                        message=f"Unknown modification '{word}'. Did you mean '{suggested}'?",
+                        severity="error",
+                        code="typo-modification",
+                        data={"suggested": suggested, "original": word},
+                    )
+                )
                 break  # Only report first occurrence
 
 

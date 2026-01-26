@@ -35,7 +35,7 @@ def _get_word_at_position(line: str, col: int) -> tuple[str, int, int]:
     Returns:
         Tuple of (word, start_col, end_col)
     """
-    word_chars = set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-/')
+    word_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-/")
 
     start = col
     end = col
@@ -66,7 +66,7 @@ def _find_line_in_file(file_path: str, pattern: str, target: str) -> int | None:
         return None
 
     try:
-        with open(file_path, encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             lines = f.readlines()
 
         in_dict = False
@@ -80,7 +80,7 @@ def _find_line_in_file(file_path: str, pattern: str, target: str) -> int | None:
 
             if in_dict:
                 # Track brace depth
-                dict_depth += line.count('{') - line.count('}')
+                dict_depth += line.count("{") - line.count("}")
 
                 # Look for the target key
                 # Patterns like: 'target': or "target":
@@ -114,31 +114,27 @@ def _create_location(file_path: str, line: int, character: int = 0) -> Any:
     """Create an LSP Location object."""
     if types is None:
         return {
-            'uri': f'file://{file_path}',
-            'range': {
-                'start': {'line': line, 'character': character},
-                'end': {'line': line, 'character': character + 20}
-            }
+            "uri": f"file://{file_path}",
+            "range": {
+                "start": {"line": line, "character": character},
+                "end": {"line": line, "character": character + 20},
+            },
         }
 
     from urllib.parse import quote
-    uri = f'file://{quote(file_path, safe="/:@")}'
+
+    uri = f"file://{quote(file_path, safe='/:@')}"
 
     return types.Location(
         uri=uri,
         range=types.Range(
             start=types.Position(line=line, character=character),
-            end=types.Position(line=line, character=character + 20)
-        )
+            end=types.Position(line=line, character=character + 20),
+        ),
     )
 
 
-def get_definition(
-    line: str,
-    col: int,
-    line_num: int = 0,
-    document_uri: str = ''
-) -> Any | None:
+def get_definition(line: str, col: int, line_num: int = 0, document_uri: str = "") -> Any | None:
     """
     Get definition location for the symbol at position.
 
@@ -160,39 +156,39 @@ def get_definition(
 
     # Check if it's a named form
     if word_lower in NAMED_FORMS:
-        file_path = _get_source_file('forms')
+        file_path = _get_source_file("forms")
         if file_path:
-            pattern = DEFINITION_PATTERNS['forms']
+            pattern = DEFINITION_PATTERNS["forms"]
             found_line = _find_line_in_file(file_path, pattern, word_lower)
             if found_line is not None:
                 return _create_location(file_path, found_line)
 
     # Check if it's a twin law
     if word_lower in TWIN_LAWS:
-        file_path = _get_source_file('twin_laws')
+        file_path = _get_source_file("twin_laws")
         if file_path:
-            pattern = DEFINITION_PATTERNS['twin_laws']
+            pattern = DEFINITION_PATTERNS["twin_laws"]
             # Handle both 'spinel' and 'spinel_law' style names
             found_line = _find_line_in_file(file_path, pattern, word_lower)
-            if found_line is None and not word_lower.endswith('_law'):
-                found_line = _find_line_in_file(file_path, pattern, word_lower + '_law')
+            if found_line is None and not word_lower.endswith("_law"):
+                found_line = _find_line_in_file(file_path, pattern, word_lower + "_law")
             if found_line is not None:
                 return _create_location(file_path, found_line)
 
     # Check if it's a crystal system
     if word_lower in CRYSTAL_SYSTEMS:
-        file_path = _get_source_file('systems')
+        file_path = _get_source_file("systems")
         if file_path:
-            pattern = DEFINITION_PATTERNS['systems']
+            pattern = DEFINITION_PATTERNS["systems"]
             found_line = _find_line_in_file(file_path, pattern, word_lower)
             if found_line is not None:
                 return _create_location(file_path, found_line)
 
     # Check if it's a point group
     if word in ALL_POINT_GROUPS:
-        file_path = _get_source_file('point_groups')
+        file_path = _get_source_file("point_groups")
         if file_path:
-            pattern = DEFINITION_PATTERNS['point_groups']
+            pattern = DEFINITION_PATTERNS["point_groups"]
             found_line = _find_line_in_file(file_path, pattern, word)
             if found_line is not None:
                 return _create_location(file_path, found_line)
@@ -200,12 +196,7 @@ def get_definition(
     return None
 
 
-def get_definitions(
-    line: str,
-    col: int,
-    line_num: int = 0,
-    document_uri: str = ''
-) -> list[Any]:
+def get_definitions(line: str, col: int, line_num: int = 0, document_uri: str = "") -> list[Any]:
     """
     Get all definition locations for the symbol at position.
 

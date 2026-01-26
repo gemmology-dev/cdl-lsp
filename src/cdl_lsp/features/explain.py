@@ -11,7 +11,7 @@ import sys
 from typing import Any
 
 # Add scripts directory to path for imports
-_scripts_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'scripts')
+_scripts_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts")
 if _scripts_dir not in sys.path:
     sys.path.insert(0, _scripts_dir)
 
@@ -31,10 +31,12 @@ from ..constants import (
 # Try to import presets for explanation
 try:
     from crystal_presets import CRYSTAL_PRESETS, get_preset
+
     PRESETS_AVAILABLE = True
 except ImportError:
     CRYSTAL_PRESETS = {}
     PRESETS_AVAILABLE = False
+
     def get_preset(name):
         return None
 
@@ -53,7 +55,7 @@ def explain_cdl(text: str) -> str:
     if not text:
         return "# Empty CDL Document\n\nNo crystal description provided."
 
-    lines = text.split('\n')
+    lines = text.split("\n")
     explanations = []
 
     for line_num, line in enumerate(lines):
@@ -62,7 +64,7 @@ def explain_cdl(text: str) -> str:
         # Skip empty lines and comments
         if not line:
             continue
-        if line.startswith('#'):
+        if line.startswith("#"):
             explanations.append(f"*Comment:* {line[1:].strip()}\n")
             continue
 
@@ -92,40 +94,40 @@ def _explain_preset(preset_name: str, line_num: int) -> str:
     parts.append(f"## Line {line_num}: `{preset_name}` (Preset)\n")
 
     # Basic info
-    name = preset.get('name', preset_name.title())
+    name = preset.get("name", preset_name.title())
     parts.append(f"### {name}\n")
 
-    if preset.get('description'):
+    if preset.get("description"):
         parts.append(f"{preset['description']}\n")
 
     # CDL notation
-    cdl = preset.get('cdl', '')
+    cdl = preset.get("cdl", "")
     if cdl:
         parts.append(f"\n**CDL Notation:** `{cdl}`\n")
 
     # Crystal system and point group
-    system = preset.get('system', 'Unknown')
-    pg = preset.get('point_group', '')
+    system = preset.get("system", "Unknown")
+    pg = preset.get("point_group", "")
     parts.append(f"\n### Crystal System: **{system.title()}**\n")
     if pg:
         parts.append(f"Point Group: **{pg}**\n")
 
     # Chemistry
-    if preset.get('chemistry'):
+    if preset.get("chemistry"):
         parts.append("\n### Chemistry\n")
         parts.append(f"**Formula:** {preset['chemistry']}\n")
 
     # Physical properties
     physical_props = []
-    if preset.get('hardness'):
+    if preset.get("hardness"):
         physical_props.append(f"**Hardness:** {preset['hardness']}")
-    if preset.get('sg'):
+    if preset.get("sg"):
         physical_props.append(f"**Specific Gravity:** {preset['sg']}")
-    if preset.get('cleavage'):
+    if preset.get("cleavage"):
         physical_props.append(f"**Cleavage:** {preset['cleavage']}")
-    if preset.get('fracture'):
+    if preset.get("fracture"):
         physical_props.append(f"**Fracture:** {preset['fracture']}")
-    if preset.get('lustre'):
+    if preset.get("lustre"):
         physical_props.append(f"**Lustre:** {preset['lustre']}")
 
     if physical_props:
@@ -134,15 +136,15 @@ def _explain_preset(preset_name: str, line_num: int) -> str:
 
     # Optical properties
     optical_props = []
-    if preset.get('ri'):
+    if preset.get("ri"):
         optical_props.append(f"**Refractive Index:** {preset['ri']}")
-    if preset.get('birefringence'):
+    if preset.get("birefringence"):
         optical_props.append(f"**Birefringence:** {preset['birefringence']}")
-    if preset.get('optical_character'):
+    if preset.get("optical_character"):
         optical_props.append(f"**Optical Character:** {preset['optical_character']}")
-    if preset.get('dispersion'):
+    if preset.get("dispersion"):
         optical_props.append(f"**Dispersion:** {preset['dispersion']}")
-    if preset.get('pleochroism'):
+    if preset.get("pleochroism"):
         optical_props.append(f"**Pleochroism:** {preset['pleochroism']}")
 
     if optical_props:
@@ -150,29 +152,29 @@ def _explain_preset(preset_name: str, line_num: int) -> str:
         parts.append("\n".join(optical_props) + "\n")
 
     # Colors
-    if preset.get('colors'):
+    if preset.get("colors"):
         parts.append("\n### Colors\n")
-        parts.append(", ".join(preset['colors']) + "\n")
+        parts.append(", ".join(preset["colors"]) + "\n")
 
     # Localities
-    if preset.get('localities'):
+    if preset.get("localities"):
         parts.append("\n### Localities\n")
-        parts.append(", ".join(preset['localities']) + "\n")
+        parts.append(", ".join(preset["localities"]) + "\n")
 
     # Crystal forms
-    if preset.get('forms'):
+    if preset.get("forms"):
         parts.append("\n### Crystal Forms\n")
-        parts.append(", ".join(f.title() for f in preset['forms']) + "\n")
+        parts.append(", ".join(f.title() for f in preset["forms"]) + "\n")
 
     # Inclusions
-    if preset.get('inclusions'):
+    if preset.get("inclusions"):
         parts.append("\n### Common Inclusions\n")
-        parts.append(", ".join(preset['inclusions']) + "\n")
+        parts.append(", ".join(preset["inclusions"]) + "\n")
 
     # Treatments
-    if preset.get('treatments'):
+    if preset.get("treatments"):
         parts.append("\n### Known Treatments\n")
-        parts.append(", ".join(preset['treatments']) + "\n")
+        parts.append(", ".join(preset["treatments"]) + "\n")
 
     return "".join(parts)
 
@@ -212,10 +214,10 @@ def _explain_line(line: str, line_num: int) -> str:
     if forms_info:
         parts.append(f"\n### Crystal Forms ({len(forms_info)} forms)\n")
         for form in forms_info:
-            form_name = form.get('name')
-            miller = form.get('miller')
-            scale = form.get('scale')
-            form_doc = form.get('doc', '')
+            form_name = form.get("name")
+            miller = form.get("miller")
+            scale = form.get("scale")
+            form_doc = form.get("doc", "")
 
             if form_name:
                 parts.append(f"\n#### {form_name.title()} {miller}\n")
@@ -227,17 +229,21 @@ def _explain_line(line: str, line_num: int) -> str:
 
             if scale and scale != 1.0:
                 if scale < 1.0:
-                    parts.append(f"\n*Scale:* {scale} — This form is **dominant** (closer to origin, larger faces).\n")
+                    parts.append(
+                        f"\n*Scale:* {scale} — This form is **dominant** (closer to origin, larger faces).\n"
+                    )
                 else:
-                    parts.append(f"\n*Scale:* {scale} — This form is **subordinate** (farther from origin, smaller faces).\n")
+                    parts.append(
+                        f"\n*Scale:* {scale} — This form is **subordinate** (farther from origin, smaller faces).\n"
+                    )
 
     # Modifications
     if modifications_info:
         parts.append("\n### Modifications\n")
         for mod in modifications_info:
-            mod_name = mod.get('name')
-            mod_doc = mod.get('doc', '')
-            mod_value = mod.get('value')
+            mod_name = mod.get("name")
+            mod_doc = mod.get("doc", "")
+            mod_value = mod.get("value")
 
             parts.append(f"\n#### {mod_name.title()}")
             if mod_value:
@@ -248,9 +254,9 @@ def _explain_line(line: str, line_num: int) -> str:
 
     # Twinning
     if twin_info:
-        twin_law = twin_info.get('law')
-        twin_doc = twin_info.get('doc', '')
-        contact = twin_info.get('contact')
+        twin_law = twin_info.get("law")
+        twin_doc = twin_info.get("doc", "")
+        contact = twin_info.get("contact")
 
         parts.append(f"\n### Twinning: **{twin_law.title()} Law**\n")
         if twin_doc:
@@ -260,7 +266,9 @@ def _explain_line(line: str, line_num: int) -> str:
 
     # Overall description
     parts.append("\n### Summary\n")
-    summary = _generate_summary(system_info, point_group_info, forms_info, modifications_info, twin_info)
+    summary = _generate_summary(
+        system_info, point_group_info, forms_info, modifications_info, twin_info
+    )
     parts.append(summary)
 
     return "".join(parts)
@@ -268,22 +276,22 @@ def _explain_line(line: str, line_num: int) -> str:
 
 def _extract_system(line: str) -> tuple | None:
     """Extract crystal system from line."""
-    match = re.match(r'(\w+)\s*\[', line)
+    match = re.match(r"(\w+)\s*\[", line)
     if match:
         system = match.group(1).lower()
         if system in CRYSTAL_SYSTEMS:
-            doc = SYSTEM_DOCS.get(system, '')
+            doc = SYSTEM_DOCS.get(system, "")
             return (system, doc)
     return None
 
 
 def _extract_point_group(line: str) -> tuple | None:
     """Extract point group from line."""
-    match = re.search(r'\[([^\]]+)\]', line)
+    match = re.search(r"\[([^\]]+)\]", line)
     if match:
         pg = match.group(1)
         if pg in ALL_POINT_GROUPS:
-            doc = POINT_GROUP_DOCS.get(pg, '')
+            doc = POINT_GROUP_DOCS.get(pg, "")
             return (pg, doc)
     return None
 
@@ -293,33 +301,33 @@ def _extract_forms(line: str) -> list[dict[str, Any]]:
     forms = []
 
     # Find forms section (after colon, before modifications)
-    forms_match = re.search(r':\s*\{(.+?)\}', line)
+    forms_match = re.search(r":\s*\{(.+?)\}", line)
     if not forms_match:
         # Try without colon for backward compatibility
-        forms_match = re.search(r'\]\s*\{(.+?)\}', line)
+        forms_match = re.search(r"\]\s*\{(.+?)\}", line)
 
     if forms_match:
         forms_section = forms_match.group(0)
 
         # Find all Miller indices or named forms
         # Pattern for Miller index with optional scale: {hkl}@scale or {hkil}@scale
-        miller_pattern = r'\{([^}]+)\}(?:@(\d+\.?\d*))?'
+        miller_pattern = r"\{([^}]+)\}(?:@(\d+\.?\d*))?"
 
         for match in re.finditer(miller_pattern, forms_section):
             miller_str = match.group(1)
             scale_str = match.group(2)
 
             form_info = {
-                'miller': f'{{{miller_str}}}',
-                'scale': float(scale_str) if scale_str else 1.0
+                "miller": f"{{{miller_str}}}",
+                "scale": float(scale_str) if scale_str else 1.0,
             }
 
             # Check if this is a named form
             for form_name, indices in NAMED_FORMS.items():
                 expected = f"{indices[0]}{indices[1]}{indices[2]}"
                 if miller_str == expected:
-                    form_info['name'] = form_name
-                    form_info['doc'] = FORM_DOCS.get(form_name, '')
+                    form_info["name"] = form_name
+                    form_info["doc"] = FORM_DOCS.get(form_name, "")
                     break
 
             forms.append(form_info)
@@ -327,23 +335,25 @@ def _extract_forms(line: str) -> list[dict[str, Any]]:
     # Also check for named forms outside braces (in combined expressions)
     for form_name in NAMED_FORMS.keys():
         # Check if form name appears in the line (not inside braces)
-        pattern = rf'\b{re.escape(form_name)}\b(?:@(\d+\.?\d*))?'
+        pattern = rf"\b{re.escape(form_name)}\b(?:@(\d+\.?\d*))?"
         for match in re.finditer(pattern, line, re.IGNORECASE):
             # Skip if this is inside a twin() call
-            if 'twin(' in line[:match.start()].lower():
+            if "twin(" in line[: match.start()].lower():
                 continue
 
             # Check if already captured
-            already_found = any(f.get('name', '').lower() == form_name.lower() for f in forms)
+            already_found = any(f.get("name", "").lower() == form_name.lower() for f in forms)
             if not already_found:
                 scale_str = match.group(1)
                 indices = NAMED_FORMS[form_name]
-                forms.append({
-                    'name': form_name,
-                    'miller': f'{{{indices[0]}{indices[1]}{indices[2]}}}',
-                    'scale': float(scale_str) if scale_str else 1.0,
-                    'doc': FORM_DOCS.get(form_name, '')
-                })
+                forms.append(
+                    {
+                        "name": form_name,
+                        "miller": f"{{{indices[0]}{indices[1]}{indices[2]}}}",
+                        "scale": float(scale_str) if scale_str else 1.0,
+                        "doc": FORM_DOCS.get(form_name, ""),
+                    }
+                )
 
     return forms
 
@@ -354,16 +364,16 @@ def _extract_modifications(line: str) -> list[dict[str, Any]]:
 
     for mod_name in MODIFICATIONS:
         # Check for modification with optional value
-        pattern = rf'\b{re.escape(mod_name)}\b(?:\(([^)]+)\))?'
+        pattern = rf"\b{re.escape(mod_name)}\b(?:\(([^)]+)\))?"
         for match in re.finditer(pattern, line, re.IGNORECASE):
             # Skip if this is part of system name
-            if mod_name == line.split('[')[0].strip().lower():
+            if mod_name == line.split("[")[0].strip().lower():
                 continue
 
             mod_info = {
-                'name': mod_name,
-                'doc': MODIFICATION_DOCS.get(mod_name, ''),
-                'value': match.group(1) if match.group(1) else None
+                "name": mod_name,
+                "doc": MODIFICATION_DOCS.get(mod_name, ""),
+                "value": match.group(1) if match.group(1) else None,
             }
             modifications.append(mod_info)
 
@@ -373,21 +383,23 @@ def _extract_modifications(line: str) -> list[dict[str, Any]]:
 def _extract_twin(line: str) -> dict[str, Any] | None:
     """Extract twin information from line."""
     # Look for twin(law) or twin(law, contact)
-    twin_match = re.search(r'twin\s*\(\s*(\w+)(?:\s*,\s*([^)]+))?\s*\)', line, re.IGNORECASE)
+    twin_match = re.search(r"twin\s*\(\s*(\w+)(?:\s*,\s*([^)]+))?\s*\)", line, re.IGNORECASE)
     if twin_match:
         law = twin_match.group(1).lower()
         contact = twin_match.group(2)
 
         return {
-            'law': law,
-            'doc': TWIN_LAW_DOCS.get(law, ''),
-            'contact': contact.strip() if contact else None
+            "law": law,
+            "doc": TWIN_LAW_DOCS.get(law, ""),
+            "contact": contact.strip() if contact else None,
         }
 
     return None
 
 
-def _generate_summary(system_info, point_group_info, forms_info, modifications_info, twin_info) -> str:
+def _generate_summary(
+    system_info, point_group_info, forms_info, modifications_info, twin_info
+) -> str:
     """Generate a human-readable summary."""
     parts = []
 
@@ -403,14 +415,14 @@ def _generate_summary(system_info, point_group_info, forms_info, modifications_i
 
     if forms_info:
         form_count = len(forms_info)
-        named_forms = [f['name'] for f in forms_info if f.get('name')]
+        named_forms = [f["name"] for f in forms_info if f.get("name")]
         if named_forms:
             parts.append(f", showing {form_count} form(s): {', '.join(named_forms)}")
         else:
             parts.append(f", showing {form_count} crystallographic form(s)")
 
     if modifications_info:
-        mod_names = [m['name'] for m in modifications_info]
+        mod_names = [m["name"] for m in modifications_info]
         parts.append(f", modified by {', '.join(mod_names)}")
 
     if twin_info:
@@ -432,7 +444,4 @@ def get_explain_result(text: str) -> dict[str, Any]:
         Dictionary with explanation content
     """
     explanation = explain_cdl(text)
-    return {
-        'content': explanation,
-        'kind': 'markdown'
-    }
+    return {"content": explanation, "kind": "markdown"}

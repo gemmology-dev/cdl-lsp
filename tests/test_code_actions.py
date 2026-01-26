@@ -16,7 +16,7 @@ class TestCodeActionKinds:
         assert len(kinds) > 0
         # Check that quickfix is supported (either as string or enum)
         kinds_str = [str(k) for k in kinds]
-        assert any('quickfix' in k.lower() for k in kinds_str)
+        assert any("quickfix" in k.lower() for k in kinds_str)
 
 
 class TestCodeActionsWithoutLSProtocol:
@@ -48,6 +48,7 @@ class TestCodeActionsWithMockDiagnostics:
 
     def test_diagnostic_without_code(self):
         """Diagnostic without code is skipped."""
+
         # Create a minimal mock diagnostic
         class MockDiag:
             pass
@@ -58,6 +59,7 @@ class TestCodeActionsWithMockDiagnostics:
 
     def test_diagnostic_with_none_code(self):
         """Diagnostic with None code is skipped."""
+
         class MockDiag:
             code = None
 
@@ -67,8 +69,9 @@ class TestCodeActionsWithMockDiagnostics:
 
     def test_diagnostic_without_data(self):
         """Diagnostic without data is skipped for typo fixes."""
+
         class MockDiag:
-            code = 'typo-form'
+            code = "typo-form"
 
         diag = MockDiag()
         actions = get_code_actions("file:///test.cdl", None, [diag])
@@ -83,6 +86,7 @@ class TestCodeActionsIntegration:
     def lsprotocol_available(self):
         """Check if lsprotocol is available."""
         import importlib.util
+
         return importlib.util.find_spec("lsprotocol") is not None
 
     def test_typo_form_fix(self, lsprotocol_available):
@@ -95,14 +99,13 @@ class TestCodeActionsIntegration:
         # Create a proper diagnostic
         diag = types.Diagnostic(
             range=types.Range(
-                start=types.Position(line=0, character=11),
-                end=types.Position(line=0, character=21)
+                start=types.Position(line=0, character=11), end=types.Position(line=0, character=21)
             ),
             message="Unknown form 'octahedren'. Did you mean 'octahedron'?",
             severity=types.DiagnosticSeverity.Warning,
-            code='typo-form',
-            source='cdl-lsp',
-            data={'original': 'octahedren', 'suggested': 'octahedron'}
+            code="typo-form",
+            source="cdl-lsp",
+            data={"original": "octahedren", "suggested": "octahedron"},
         )
 
         actions = get_code_actions("file:///test.cdl", None, [diag])
@@ -119,14 +122,13 @@ class TestCodeActionsIntegration:
         # Create a proper diagnostic for missing colon
         diag = types.Diagnostic(
             range=types.Range(
-                start=types.Position(line=0, character=10),
-                end=types.Position(line=0, character=10)
+                start=types.Position(line=0, character=10), end=types.Position(line=0, character=10)
             ),
             message="Missing ':' after point group",
             severity=types.DiagnosticSeverity.Error,
-            code='missing-colon',
-            source='cdl-lsp',
-            data={'insert_text': ':'}
+            code="missing-colon",
+            source="cdl-lsp",
+            data={"insert_text": ":"},
         )
 
         actions = get_code_actions("file:///test.cdl", None, [diag])
@@ -143,14 +145,13 @@ class TestCodeActionsIntegration:
         # Create a diagnostic for unusually large scale
         diag = types.Diagnostic(
             range=types.Range(
-                start=types.Position(line=0, character=16),
-                end=types.Position(line=0, character=20)
+                start=types.Position(line=0, character=16), end=types.Position(line=0, character=20)
             ),
             message="Scale 5.0 is unusually large",
             severity=types.DiagnosticSeverity.Hint,
-            code='scale-large',
-            source='cdl-lsp',
-            data={'original': '5.0', 'suggested': '2.0'}
+            code="scale-large",
+            source="cdl-lsp",
+            data={"original": "5.0", "suggested": "2.0"},
         )
 
         actions = get_code_actions("file:///test.cdl", None, [diag])
@@ -167,26 +168,24 @@ class TestCodeActionsIntegration:
         # Create multiple diagnostics
         diag1 = types.Diagnostic(
             range=types.Range(
-                start=types.Position(line=0, character=0),
-                end=types.Position(line=0, character=5)
+                start=types.Position(line=0, character=0), end=types.Position(line=0, character=5)
             ),
             message="Unknown system",
             severity=types.DiagnosticSeverity.Error,
-            code='typo-system',
-            source='cdl-lsp',
-            data={'original': 'cubik', 'suggested': 'cubic'}
+            code="typo-system",
+            source="cdl-lsp",
+            data={"original": "cubik", "suggested": "cubic"},
         )
 
         diag2 = types.Diagnostic(
             range=types.Range(
-                start=types.Position(line=0, character=11),
-                end=types.Position(line=0, character=15)
+                start=types.Position(line=0, character=11), end=types.Position(line=0, character=15)
             ),
             message="Unknown form",
             severity=types.DiagnosticSeverity.Warning,
-            code='typo-form',
-            source='cdl-lsp',
-            data={'original': 'cub', 'suggested': 'cube'}
+            code="typo-form",
+            source="cdl-lsp",
+            data={"original": "cub", "suggested": "cube"},
         )
 
         actions = get_code_actions("file:///test.cdl", None, [diag1, diag2])

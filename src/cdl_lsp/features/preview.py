@@ -11,13 +11,14 @@ import tempfile
 from typing import Any
 
 # Add scripts directory to path for imports
-_scripts_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'scripts')
+_scripts_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts")
 if _scripts_dir not in sys.path:
     sys.path.insert(0, _scripts_dir)
 
 # Try to import the visualization module
 try:
     from crystal_visualization import CDL_AVAILABLE, generate_cdl_svg
+
     PREVIEW_AVAILABLE = CDL_AVAILABLE
 except ImportError:
     PREVIEW_AVAILABLE = False
@@ -27,6 +28,7 @@ except ImportError:
 try:
     from crystal_geometry import cdl_to_geometry, geometry_to_gltf
     from crystal_language import parse_cdl
+
     GLTF_AVAILABLE = True
 except ImportError:
     GLTF_AVAILABLE = False
@@ -37,10 +39,12 @@ except ImportError:
 # Try to import presets
 try:
     from crystal_presets import CRYSTAL_PRESETS, get_preset
+
     PRESETS_AVAILABLE = True
 except ImportError:
     CRYSTAL_PRESETS = {}
     PRESETS_AVAILABLE = False
+
     def get_preset(name):
         return None
 
@@ -61,7 +65,7 @@ def _resolve_preset_to_cdl(line: str) -> str | None:
     line_lower = line.strip().lower()
     if line_lower in CRYSTAL_PRESETS:
         preset = CRYSTAL_PRESETS[line_lower]
-        return preset.get('cdl')
+        return preset.get("cdl")
     return None
 
 
@@ -81,25 +85,25 @@ def render_cdl_preview(text: str, width: int = 600, height: int = 500) -> dict[s
 
     if not text:
         return {
-            'success': False,
-            'error': 'Empty CDL document',
-            'svg': _create_error_svg('No CDL code provided', width, height)
+            "success": False,
+            "error": "Empty CDL document",
+            "svg": _create_error_svg("No CDL code provided", width, height),
         }
 
     if not PREVIEW_AVAILABLE:
         return {
-            'success': False,
-            'error': 'Preview not available (crystal_visualization module not found)',
-            'svg': _create_error_svg('Preview module not available', width, height)
+            "success": False,
+            "error": "Preview not available (crystal_visualization module not found)",
+            "svg": _create_error_svg("Preview module not available", width, height),
         }
 
     # Get the first non-comment, non-empty line
-    lines = text.split('\n')
+    lines = text.split("\n")
     cdl_line = None
     original_line = None
     for line in lines:
         line = line.strip()
-        if line and not line.startswith('#'):
+        if line and not line.startswith("#"):
             original_line = line
             # Check if it's a preset name and resolve to CDL
             resolved = _resolve_preset_to_cdl(line)
@@ -108,14 +112,14 @@ def render_cdl_preview(text: str, width: int = 600, height: int = 500) -> dict[s
 
     if not cdl_line:
         return {
-            'success': False,
-            'error': 'No valid CDL code found',
-            'svg': _create_error_svg('No valid CDL code', width, height)
+            "success": False,
+            "error": "No valid CDL code found",
+            "svg": _create_error_svg("No valid CDL code", width, height),
         }
 
     try:
         # Generate SVG using the visualization module (writes to temp file)
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.svg', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".svg", delete=False) as f:
             temp_path = f.name
 
         try:
@@ -125,8 +129,8 @@ def render_cdl_preview(text: str, width: int = 600, height: int = 500) -> dict[s
                 show_axes=True,
                 color_by_form=True,
                 show_grid=False,
-                info_position='top-right',
-                info_style='compact'
+                info_position="top-right",
+                info_style="compact",
             )
 
             # Read the generated SVG
@@ -134,10 +138,10 @@ def render_cdl_preview(text: str, width: int = 600, height: int = 500) -> dict[s
                 svg_content = f.read()
 
             return {
-                'success': True,
-                'svg': svg_content,
-                'cdl': cdl_line,
-                'preset': original_line if original_line != cdl_line else None
+                "success": True,
+                "svg": svg_content,
+                "cdl": cdl_line,
+                "preset": original_line if original_line != cdl_line else None,
             }
         finally:
             # Clean up temp file
@@ -147,23 +151,23 @@ def render_cdl_preview(text: str, width: int = 600, height: int = 500) -> dict[s
     except ValueError as e:
         error_msg = str(e)
         return {
-            'success': False,
-            'error': error_msg,
-            'svg': _create_error_svg(f'Parse error: {error_msg}', width, height)
+            "success": False,
+            "error": error_msg,
+            "svg": _create_error_svg(f"Parse error: {error_msg}", width, height),
         }
     except Exception as e:
         error_msg = str(e)
         return {
-            'success': False,
-            'error': error_msg,
-            'svg': _create_error_svg(f'Render error: {error_msg}', width, height)
+            "success": False,
+            "error": error_msg,
+            "svg": _create_error_svg(f"Render error: {error_msg}", width, height),
         }
 
 
 def _create_error_svg(message: str, width: int = 600, height: int = 500) -> str:
     """Create an SVG displaying an error message."""
     # Escape special characters for SVG
-    message = message.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    message = message.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
     # Word wrap long messages
     words = message.split()
@@ -171,11 +175,11 @@ def _create_error_svg(message: str, width: int = 600, height: int = 500) -> str:
     current_line = []
     for word in words:
         current_line.append(word)
-        if len(' '.join(current_line)) > 40:
-            lines.append(' '.join(current_line[:-1]))
+        if len(" ".join(current_line)) > 40:
+            lines.append(" ".join(current_line[:-1]))
             current_line = [word]
     if current_line:
-        lines.append(' '.join(current_line))
+        lines.append(" ".join(current_line))
 
     # Generate text elements
     text_y = height // 2 - (len(lines) * 12)
@@ -185,10 +189,10 @@ def _create_error_svg(message: str, width: int = 600, height: int = 500) -> str:
         text_elements.append(
             f'<text x="{width // 2}" y="{y}" '
             f'text-anchor="middle" font-family="sans-serif" font-size="14" fill="#666">'
-            f'{line}</text>'
+            f"{line}</text>"
         )
 
-    text_content = '\n    '.join(text_elements)
+    text_content = "\n    ".join(text_elements)
 
     return f'''<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
@@ -225,26 +229,22 @@ def render_cdl_preview_3d(text: str) -> dict[str, Any]:
     text = text.strip()
 
     if not text:
-        return {
-            'success': False,
-            'error': 'Empty CDL document',
-            'gltf': None
-        }
+        return {"success": False, "error": "Empty CDL document", "gltf": None}
 
     if not GLTF_AVAILABLE:
         return {
-            'success': False,
-            'error': '3D preview not available (crystal_geometry module not found)',
-            'gltf': None
+            "success": False,
+            "error": "3D preview not available (crystal_geometry module not found)",
+            "gltf": None,
         }
 
     # Get the first non-comment, non-empty line
-    lines = text.split('\n')
+    lines = text.split("\n")
     cdl_line = None
     original_line = None
     for line in lines:
         line = line.strip()
-        if line and not line.startswith('#'):
+        if line and not line.startswith("#"):
             original_line = line
             # Check if it's a preset name and resolve to CDL
             resolved = _resolve_preset_to_cdl(line)
@@ -252,11 +252,7 @@ def render_cdl_preview_3d(text: str) -> dict[str, Any]:
             break
 
     if not cdl_line:
-        return {
-            'success': False,
-            'error': 'No valid CDL code found',
-            'gltf': None
-        }
+        return {"success": False, "error": "No valid CDL code found", "gltf": None}
 
     try:
         # Parse and generate geometry
@@ -270,53 +266,49 @@ def render_cdl_preview_3d(text: str) -> dict[str, Any]:
         forms_str = " + ".join(str(f.miller) for f in description.forms)
         preset_name = original_line if original_line != cdl_line else None
         if preset_name:
-            title = f"{preset_name.title()} - {description.system.title()} [{description.point_group}]"
+            title = (
+                f"{preset_name.title()} - {description.system.title()} [{description.point_group}]"
+            )
         else:
             title = f"{description.system.title()} [{description.point_group}] : {forms_str}"
 
         return {
-            'success': True,
-            'gltf': gltf_data,
-            'cdl': cdl_line,
-            'preset': preset_name,
-            'title': title,
-            'system': description.system,
-            'point_group': description.point_group,
-            'num_forms': len(description.forms),
-            'num_vertices': len(geometry.vertices),
-            'num_faces': len(geometry.faces)
+            "success": True,
+            "gltf": gltf_data,
+            "cdl": cdl_line,
+            "preset": preset_name,
+            "title": title,
+            "system": description.system,
+            "point_group": description.point_group,
+            "num_forms": len(description.forms),
+            "num_vertices": len(geometry.vertices),
+            "num_faces": len(geometry.faces),
         }
 
     except ValueError as e:
-        return {
-            'success': False,
-            'error': f'Parse error: {str(e)}',
-            'gltf': None
-        }
+        return {"success": False, "error": f"Parse error: {str(e)}", "gltf": None}
     except Exception as e:
-        return {
-            'success': False,
-            'error': f'Render error: {str(e)}',
-            'gltf': None
-        }
+        return {"success": False, "error": f"Render error: {str(e)}", "gltf": None}
 
 
 def get_preview_capabilities() -> dict[str, Any]:
     """Get information about preview capabilities."""
     formats = []
     if PREVIEW_AVAILABLE:
-        formats.append('svg')
+        formats.append("svg")
     if GLTF_AVAILABLE:
-        formats.append('gltf')
+        formats.append("gltf")
 
     return {
-        'available': PREVIEW_AVAILABLE or GLTF_AVAILABLE,
-        'formats': formats,
-        'features': {
-            'axes': True,
-            'info_panel': True,
-            'rotation': GLTF_AVAILABLE,  # 3D rotation available with glTF
-            'export': ['svg', 'png', 'gltf'] if GLTF_AVAILABLE else (['svg', 'png'] if PREVIEW_AVAILABLE else [])
+        "available": PREVIEW_AVAILABLE or GLTF_AVAILABLE,
+        "formats": formats,
+        "features": {
+            "axes": True,
+            "info_panel": True,
+            "rotation": GLTF_AVAILABLE,  # 3D rotation available with glTF
+            "export": ["svg", "png", "gltf"]
+            if GLTF_AVAILABLE
+            else (["svg", "png"] if PREVIEW_AVAILABLE else []),
         },
-        'preferred': 'gltf' if GLTF_AVAILABLE else 'svg'
+        "preferred": "gltf" if GLTF_AVAILABLE else "svg",
     }

@@ -10,7 +10,7 @@ import sys
 from typing import Any
 
 # Add scripts directory to path for imports
-_scripts_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'scripts')
+_scripts_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "scripts")
 if _scripts_dir not in sys.path:
     sys.path.insert(0, _scripts_dir)
 
@@ -24,22 +24,19 @@ def _get_presets() -> dict:
     """Load presets from crystal_presets module."""
     try:
         from crystal_presets import CRYSTAL_PRESETS
+
         return CRYSTAL_PRESETS
     except ImportError:
         return {}
 
 
-def _create_snippet_item(
-    name: str,
-    preset: dict,
-    sort_prefix: str = ''
-) -> Any:
+def _create_snippet_item(name: str, preset: dict, sort_prefix: str = "") -> Any:
     """Create a completion item for a preset snippet."""
-    cdl = preset.get('cdl', '')
-    display_name = preset.get('name', name)
-    preset.get('system', 'unknown')
-    chemistry = preset.get('chemistry', '')
-    hardness = preset.get('hardness', '')
+    cdl = preset.get("cdl", "")
+    display_name = preset.get("name", name)
+    preset.get("system", "unknown")
+    chemistry = preset.get("chemistry", "")
+    hardness = preset.get("hardness", "")
 
     # Build documentation
     doc_parts = [f"**{display_name}**\n"]
@@ -49,8 +46,8 @@ def _create_snippet_item(
         doc_parts.append(f"Hardness: {hardness}")
 
     # Add optical properties if available
-    ri = preset.get('ri', '')
-    sg = preset.get('sg', '')
+    ri = preset.get("ri", "")
+    sg = preset.get("sg", "")
     if ri:
         doc_parts.append(f"RI: {ri}")
     if sg:
@@ -58,36 +55,33 @@ def _create_snippet_item(
 
     doc_parts.append(f"\n**Expands to:**\n```cdl\n{cdl}\n```")
 
-    documentation = '\n'.join(doc_parts)
+    documentation = "\n".join(doc_parts)
 
     # Detail shows CDL expansion hint
     detail = f"→ {cdl[:40]}{'...' if len(cdl) > 40 else ''}"
 
     if types is None:
         return {
-            'label': name,
-            'kind': 'Snippet',
-            'detail': detail,
-            'documentation': documentation,
-            'insert_text': cdl,
-            'insert_text_format': 2  # Snippet format
+            "label": name,
+            "kind": "Snippet",
+            "detail": detail,
+            "documentation": documentation,
+            "insert_text": cdl,
+            "insert_text_format": 2,  # Snippet format
         }
 
     return types.CompletionItem(
         label=name,
         kind=types.CompletionItemKind.Snippet,
         detail=detail,
-        documentation=types.MarkupContent(
-            kind=types.MarkupKind.Markdown,
-            value=documentation
-        ),
+        documentation=types.MarkupContent(kind=types.MarkupKind.Markdown, value=documentation),
         insert_text=cdl,
         insert_text_format=types.InsertTextFormat.PlainText,
-        sort_text=sort_prefix + name
+        sort_text=sort_prefix + name,
     )
 
 
-def get_preset_snippets(prefix: str = '') -> list[Any]:
+def get_preset_snippets(prefix: str = "") -> list[Any]:
     """
     Generate snippet completions from crystal presets.
 
@@ -100,7 +94,7 @@ def get_preset_snippets(prefix: str = '') -> list[Any]:
     presets = _get_presets()
     items = []
 
-    prefix_lower = prefix.lower() if prefix else ''
+    prefix_lower = prefix.lower() if prefix else ""
 
     for name, preset in sorted(presets.items()):
         # Filter by prefix if provided
@@ -108,12 +102,12 @@ def get_preset_snippets(prefix: str = '') -> list[Any]:
             continue
 
         # Skip if preset has no CDL
-        if 'cdl' not in preset:
+        if "cdl" not in preset:
             continue
 
         # Give presets higher priority when prefix matches (sort before systems)
         # When no prefix, use '1' so systems appear first
-        sort_prefix = '0' if prefix_lower else '1'
+        sort_prefix = "0" if prefix_lower else "1"
         items.append(_create_snippet_item(name, preset, sort_prefix=sort_prefix))
 
     return items
@@ -131,8 +125,8 @@ def get_snippet_for_preset(preset_name: str) -> str | None:
     """
     presets = _get_presets()
     preset = presets.get(preset_name)
-    if preset and 'cdl' in preset:
-        return preset['cdl']
+    if preset and "cdl" in preset:
+        return preset["cdl"]
     return None
 
 

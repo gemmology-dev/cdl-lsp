@@ -13,15 +13,16 @@ import sys
 
 # Configure logging
 logging.basicConfig(
-    filename='/tmp/cdl-lsp.log',
+    filename="/tmp/cdl-lsp.log",
     level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
-logger = logging.getLogger('cdl-lsp')
+logger = logging.getLogger("cdl-lsp")
 
 try:
     from lsprotocol import types
     from pygls.lsp.server import LanguageServer
+
     PYGLS_AVAILABLE = True
 except ImportError:
     logger.warning("pygls not installed. Install with: pip install pygls lsprotocol")
@@ -43,15 +44,14 @@ SERVER_NAME = "cdl-language-server"
 SERVER_VERSION = "1.0.0"
 
 
-def create_server() -> 'LanguageServer':
+def create_server() -> "LanguageServer":
     """Create and configure the LSP server."""
     if not PYGLS_AVAILABLE:
-        raise ImportError("pygls is required for the LSP server. Install with: pip install pygls lsprotocol")
+        raise ImportError(
+            "pygls is required for the LSP server. Install with: pip install pygls lsprotocol"
+        )
 
-    server = LanguageServer(
-        name=SERVER_NAME,
-        version=SERVER_VERSION
-    )
+    server = LanguageServer(name=SERVER_NAME, version=SERVER_VERSION)
 
     # Document storage
     documents: dict = {}
@@ -71,33 +71,27 @@ def create_server() -> 'LanguageServer':
                 text_document_sync=types.TextDocumentSyncOptions(
                     open_close=True,
                     change=types.TextDocumentSyncKind.Full,
-                    save=types.SaveOptions(include_text=True)
+                    save=types.SaveOptions(include_text=True),
                 ),
                 completion_provider=types.CompletionOptions(
-                    trigger_characters=['{', '[', ':', '@', '+', '|', '(', ','],
-                    resolve_provider=False
+                    trigger_characters=["{", "[", ":", "@", "+", "|", "(", ","],
+                    resolve_provider=False,
                 ),
                 hover_provider=types.HoverOptions(),
                 definition_provider=types.DefinitionOptions(),
                 diagnostic_provider=types.DiagnosticOptions(
-                    inter_file_dependencies=False,
-                    workspace_diagnostics=False
+                    inter_file_dependencies=False, workspace_diagnostics=False
                 ),
                 # New capabilities
-                signature_help_provider=types.SignatureHelpOptions(
-                    trigger_characters=['(', ',']
-                ),
+                signature_help_provider=types.SignatureHelpOptions(trigger_characters=["(", ","]),
                 code_action_provider=types.CodeActionOptions(
                     code_action_kinds=[types.CodeActionKind.QuickFix]
                 ),
                 document_symbol_provider=True,
-                document_formatting_provider=True
+                document_formatting_provider=True,
                 # Note: execute_command_provider is auto-populated by @server.command() decorators
             ),
-            server_info=types.ServerInfo(
-                name=SERVER_NAME,
-                version=SERVER_VERSION
-            )
+            server_info=types.ServerInfo(name=SERVER_NAME, version=SERVER_VERSION),
         )
 
     @server.feature(types.INITIALIZED)
@@ -136,11 +130,11 @@ def create_server() -> 'LanguageServer':
 
         # Full sync - get the complete new content
         for change in params.content_changes:
-            if hasattr(change, 'text'):
+            if hasattr(change, "text"):
                 documents[uri] = change.text
                 break
 
-        text = documents.get(uri, '')
+        text = documents.get(uri, "")
         logger.debug(f"Document changed: {uri}, length: {len(text)}")
 
         # Publish diagnostics
@@ -167,7 +161,7 @@ def create_server() -> 'LanguageServer':
     def did_save(params: types.DidSaveTextDocumentParams) -> None:
         """Handle document save notification."""
         uri = params.text_document.uri
-        text = params.text if params.text else documents.get(uri, '')
+        text = params.text if params.text else documents.get(uri, "")
 
         logger.debug(f"Document saved: {uri}")
 
@@ -188,12 +182,12 @@ def create_server() -> 'LanguageServer':
         uri = params.text_document.uri
         position = params.position
 
-        text = documents.get(uri, '')
+        text = documents.get(uri, "")
         if not text:
             return None
 
         # Get the current line
-        lines = text.split('\n')
+        lines = text.split("\n")
         if position.line >= len(lines):
             return None
 
@@ -208,10 +202,7 @@ def create_server() -> 'LanguageServer':
 
         items = get_completions(line, col, trigger_char)
 
-        return types.CompletionList(
-            is_incomplete=False,
-            items=items
-        )
+        return types.CompletionList(is_incomplete=False, items=items)
 
     # ==========================================================================
     # Hover
@@ -223,11 +214,11 @@ def create_server() -> 'LanguageServer':
         uri = params.text_document.uri
         position = params.position
 
-        text = documents.get(uri, '')
+        text = documents.get(uri, "")
         if not text:
             return None
 
-        lines = text.split('\n')
+        lines = text.split("\n")
         if position.line >= len(lines):
             return None
 
@@ -248,11 +239,11 @@ def create_server() -> 'LanguageServer':
         uri = params.text_document.uri
         position = params.position
 
-        text = documents.get(uri, '')
+        text = documents.get(uri, "")
         if not text:
             return None
 
-        lines = text.split('\n')
+        lines = text.split("\n")
         if position.line >= len(lines):
             return None
 
@@ -271,21 +262,19 @@ def create_server() -> 'LanguageServer':
     def diagnostic(params: types.DocumentDiagnosticParams) -> types.DocumentDiagnosticReport:
         """Handle diagnostic request (pull model)."""
         uri = params.text_document.uri
-        text = documents.get(uri, '')
+        text = documents.get(uri, "")
 
         logger.debug(f"Diagnostic request for {uri}")
 
         if not text:
             return types.RelatedFullDocumentDiagnosticReport(
-                kind=types.DocumentDiagnosticReportKind.Full,
-                items=[]
+                kind=types.DocumentDiagnosticReportKind.Full, items=[]
             )
 
         diagnostics = get_diagnostics(text)
 
         return types.RelatedFullDocumentDiagnosticReport(
-            kind=types.DocumentDiagnosticReportKind.Full,
-            items=diagnostics
+            kind=types.DocumentDiagnosticReportKind.Full, items=diagnostics
         )
 
     # ==========================================================================
@@ -316,11 +305,11 @@ def create_server() -> 'LanguageServer':
         uri = params.text_document.uri
         position = params.position
 
-        text = documents.get(uri, '')
+        text = documents.get(uri, "")
         if not text:
             return None
 
-        lines = text.split('\n')
+        lines = text.split("\n")
         if position.line >= len(lines):
             return None
 
@@ -339,7 +328,7 @@ def create_server() -> 'LanguageServer':
     def document_symbol(params: types.DocumentSymbolParams) -> list[types.DocumentSymbol]:
         """Handle document symbol request."""
         uri = params.text_document.uri
-        text = documents.get(uri, '')
+        text = documents.get(uri, "")
 
         logger.debug(f"Document symbols for {uri}")
 
@@ -356,7 +345,7 @@ def create_server() -> 'LanguageServer':
     def formatting(params: types.DocumentFormattingParams) -> list[types.TextEdit]:
         """Handle document formatting request."""
         uri = params.text_document.uri
-        text = documents.get(uri, '')
+        text = documents.get(uri, "")
 
         logger.debug(f"Formatting {uri}")
 
@@ -369,21 +358,21 @@ def create_server() -> 'LanguageServer':
     # Execute Commands (Explain, Preview)
     # ==========================================================================
 
-    @server.command('cdl.explain')
+    @server.command("cdl.explain")
     def cmd_explain(ls, *args) -> dict:
         """Execute cdl.explain command."""
         logger.debug(f"cdl.explain command, args: {args}")
 
         if args:
             uri = args[0]
-            text = documents.get(uri, '')
+            text = documents.get(uri, "")
             if text:
                 return get_explain_result(text)
             else:
-                return {'content': 'Document not found or empty', 'kind': 'markdown'}
-        return {'content': 'No document URI provided', 'kind': 'markdown'}
+                return {"content": "Document not found or empty", "kind": "markdown"}
+        return {"content": "No document URI provided", "kind": "markdown"}
 
-    @server.command('cdl.preview')
+    @server.command("cdl.preview")
     def cmd_preview(ls, *args) -> dict:
         """Execute cdl.preview command."""
         logger.debug(f"cdl.preview command, args: {args}")
@@ -392,44 +381,28 @@ def create_server() -> 'LanguageServer':
             uri = args[0]
             width = args[1] if len(args) > 1 else 600
             height = args[2] if len(args) > 2 else 500
-            text = documents.get(uri, '')
+            text = documents.get(uri, "")
             if text:
                 return render_cdl_preview(text, width, height)
             else:
-                return {
-                    'success': False,
-                    'error': 'Document not found or empty',
-                    'svg': ''
-                }
-        return {
-            'success': False,
-            'error': 'No document URI provided',
-            'svg': ''
-        }
+                return {"success": False, "error": "Document not found or empty", "svg": ""}
+        return {"success": False, "error": "No document URI provided", "svg": ""}
 
-    @server.command('cdl.preview3d')
+    @server.command("cdl.preview3d")
     def cmd_preview_3d(ls, *args) -> dict:
         """Execute cdl.preview3d command - returns glTF for 3D preview."""
         logger.debug(f"cdl.preview3d command, args: {args}")
 
         if args:
             uri = args[0]
-            text = documents.get(uri, '')
+            text = documents.get(uri, "")
             if text:
                 return render_cdl_preview_3d(text)
             else:
-                return {
-                    'success': False,
-                    'error': 'Document not found or empty',
-                    'gltf': None
-                }
-        return {
-            'success': False,
-            'error': 'No document URI provided',
-            'gltf': None
-        }
+                return {"success": False, "error": "Document not found or empty", "gltf": None}
+        return {"success": False, "error": "No document URI provided", "gltf": None}
 
-    @server.command('cdl.previewCapabilities')
+    @server.command("cdl.previewCapabilities")
     def cmd_preview_capabilities(ls, *args) -> dict:
         """Execute cdl.previewCapabilities command."""
         logger.debug("cdl.previewCapabilities command")
@@ -441,46 +414,27 @@ def create_server() -> 'LanguageServer':
 def main():
     """Main entry point for the CDL Language Server."""
     parser = argparse.ArgumentParser(
-        description='CDL Language Server Protocol implementation',
+        description="CDL Language Server Protocol implementation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   python -m lsp                    # Start server with stdio transport
   python -m lsp --tcp --port 2087  # Start server with TCP transport
-        """
+        """,
     )
 
+    parser.add_argument("--stdio", action="store_true", help="Use stdio transport (default)")
+    parser.add_argument("--tcp", action="store_true", help="Use TCP transport instead of stdio")
     parser.add_argument(
-        '--stdio',
-        action='store_true',
-        help='Use stdio transport (default)'
+        "--host", default="127.0.0.1", help="Host to bind to for TCP transport (default: 127.0.0.1)"
     )
     parser.add_argument(
-        '--tcp',
-        action='store_true',
-        help='Use TCP transport instead of stdio'
+        "--port", type=int, default=2087, help="Port to bind to for TCP transport (default: 2087)"
     )
     parser.add_argument(
-        '--host',
-        default='127.0.0.1',
-        help='Host to bind to for TCP transport (default: 127.0.0.1)'
+        "--version", action="version", version=f"CDL Language Server {SERVER_VERSION}"
     )
-    parser.add_argument(
-        '--port',
-        type=int,
-        default=2087,
-        help='Port to bind to for TCP transport (default: 2087)'
-    )
-    parser.add_argument(
-        '--version',
-        action='version',
-        version=f'CDL Language Server {SERVER_VERSION}'
-    )
-    parser.add_argument(
-        '--debug',
-        action='store_true',
-        help='Enable debug logging to stderr'
-    )
+    parser.add_argument("--debug", action="store_true", help="Enable debug logging to stderr")
 
     args = parser.parse_args()
 
@@ -491,8 +445,9 @@ Examples:
         logger.addHandler(console_handler)
 
     if not PYGLS_AVAILABLE:
-        print("Error: pygls is required. Install with: pip install pygls lsprotocol",
-              file=sys.stderr)
+        print(
+            "Error: pygls is required. Install with: pip install pygls lsprotocol", file=sys.stderr
+        )
         sys.exit(1)
 
     server = create_server()
@@ -507,5 +462,5 @@ Examples:
         server.start_io()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

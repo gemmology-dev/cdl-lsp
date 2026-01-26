@@ -11,41 +11,19 @@ import sys
 
 def main():
     """Main entry point for the CDL Language Server."""
-    parser = argparse.ArgumentParser(
-        description='CDL Language Server'
-    )
+    parser = argparse.ArgumentParser(description="CDL Language Server")
     parser.add_argument(
-        '--stdio',
-        action='store_true',
-        default=True,
-        help='Use stdio for communication (default)'
+        "--stdio", action="store_true", default=True, help="Use stdio for communication (default)"
     )
+    parser.add_argument("--tcp", action="store_true", help="Use TCP for communication")
+    parser.add_argument("--host", default="127.0.0.1", help="TCP host (default: 127.0.0.1)")
+    parser.add_argument("--port", type=int, default=2087, help="TCP port (default: 2087)")
+    parser.add_argument("--log-file", default="/tmp/cdl-lsp.log", help="Log file path")
     parser.add_argument(
-        '--tcp',
-        action='store_true',
-        help='Use TCP for communication'
-    )
-    parser.add_argument(
-        '--host',
-        default='127.0.0.1',
-        help='TCP host (default: 127.0.0.1)'
-    )
-    parser.add_argument(
-        '--port',
-        type=int,
-        default=2087,
-        help='TCP port (default: 2087)'
-    )
-    parser.add_argument(
-        '--log-file',
-        default='/tmp/cdl-lsp.log',
-        help='Log file path'
-    )
-    parser.add_argument(
-        '--log-level',
-        default='INFO',
-        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
-        help='Logging level'
+        "--log-level",
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        help="Logging level",
     )
 
     args = parser.parse_args()
@@ -54,7 +32,7 @@ def main():
     logging.basicConfig(
         filename=args.log_file,
         level=getattr(logging, args.log_level),
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
     try:
@@ -72,5 +50,5 @@ def main():
         server.start_io()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
