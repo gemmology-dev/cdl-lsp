@@ -1,6 +1,6 @@
 [project]
 name = "gemmology-cdl-lsp"
-version = "1.0.0"
+version = "1.0.1"
 description = "Language Server Protocol implementation for Crystal Description Language"
 readme = "README.md"
 license = { text = "MIT" }
