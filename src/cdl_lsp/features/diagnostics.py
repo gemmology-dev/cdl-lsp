@@ -492,9 +492,7 @@ def _check_modification_typos(
                 break  # Only report first occurrence
 
 
-def _check_feature_names(
-    line_text: str, line_num: int, diagnostics: list[DiagnosticInfo]
-) -> None:
+def _check_feature_names(line_text: str, line_num: int, diagnostics: list[DiagnosticInfo]) -> None:
     """Check for invalid feature names in [...] blocks after forms."""
     # Find feature brackets: }[...] or }@scale[...]
     for match in re.finditer(r"\}(?:@[\d.]+)?\[([^\]]+)\]", line_text):
