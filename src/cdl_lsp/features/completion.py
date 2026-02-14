@@ -121,8 +121,8 @@ def _detect_context(line: str, col: int) -> tuple[CompletionContext, str]:
     brace_match = re.search(r"\{[^}]*$", text_before)
     if brace_match:
         # Get content inside braces
-        inside = brace_match.group(0)[1:]  # Remove leading {
-        return (CompletionContext.MILLER_INDEX, inside)
+        brace_content = brace_match.group(0)[1:]  # Remove leading {
+        return (CompletionContext.MILLER_INDEX, brace_content)
 
     # After @
     if text_before_stripped.endswith("@"):
@@ -131,8 +131,8 @@ def _detect_context(line: str, col: int) -> tuple[CompletionContext, str]:
     # Inside point group brackets
     bracket_match = re.search(r"\[[^\]]*$", text_before)
     if bracket_match:
-        inside = bracket_match.group(0)[1:]  # Remove leading [
-        return (CompletionContext.POINT_GROUP, inside)
+        bracket_content = bracket_match.group(0)[1:]  # Remove leading [
+        return (CompletionContext.POINT_GROUP, bracket_content)
 
     # After |
     if text_before_stripped.endswith("|") or re.search(r"\|\s*\w*$", text_before):
