@@ -140,9 +140,7 @@ def _create_location(file_path: str, line: int, character: int = 0) -> Any:
     )
 
 
-def _find_definition_in_document(
-    name: str, document_text: str, document_uri: str
-) -> Any | None:
+def _find_definition_in_document(name: str, document_text: str, document_uri: str) -> Any | None:
     """
     Find a @name definition in the document text.
 
