@@ -20,7 +20,6 @@ from cdl_lsp.features.definition import (
 from cdl_lsp.features.document_symbols import get_document_symbols
 from cdl_lsp.features.formatting import format_line
 
-
 # ============================================================================
 # Sample document with definitions and references
 # ============================================================================

@@ -17,19 +17,19 @@ try:
         CRYSTAL_SYSTEMS as _SYSTEMS,
     )
     from cdl_parser import (
+        FEATURE_NAMES as _FEAT_NAMES,
+    )
+    from cdl_parser import (
         NAMED_FORMS as _FORMS,
+    )
+    from cdl_parser import (
+        PHENOMENON_TYPES as _PHEN_TYPES,
     )
     from cdl_parser import (
         POINT_GROUPS as _GROUPS,
     )
     from cdl_parser import (
         TWIN_LAWS as _TWINS,
-    )
-    from cdl_parser import (
-        FEATURE_NAMES as _FEAT_NAMES,
-    )
-    from cdl_parser import (
-        PHENOMENON_TYPES as _PHEN_TYPES,
     )
 
     CRYSTAL_SYSTEMS: set[str] = set(_SYSTEMS)
