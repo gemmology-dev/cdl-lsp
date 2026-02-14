@@ -27,6 +27,8 @@ except ImportError:
 from ..constants import (
     ALL_POINT_GROUPS,
     CRYSTAL_SYSTEMS,
+    FEATURE_NAMES,
+    PHENOMENON_TYPES,
     POINT_GROUPS,
     TWIN_LAWS,
     validate_point_group_for_system,
@@ -174,6 +176,10 @@ def _validate_cdl_line(line_text: str, line_num: int) -> list[DiagnosticInfo]:
     _check_modification_typos(line_text, line_num, pre_parse_diagnostics)
     _check_form_typos(line_text, line_num, pre_parse_diagnostics)
     _check_twin_typos(line_text, line_num, pre_parse_diagnostics)
+
+    # Check for invalid feature names and phenomenon types (warnings, not blocking)
+    _check_feature_names(line_text, line_num, diagnostics)
+    _check_phenomenon_type(line_text, line_num, diagnostics)
 
     # If we found issues with quick-fix data, return those
     if pre_parse_diagnostics:
@@ -484,6 +490,58 @@ def _check_modification_typos(
                     )
                 )
                 break  # Only report first occurrence
+
+
+def _check_feature_names(
+    line_text: str, line_num: int, diagnostics: list[DiagnosticInfo]
+) -> None:
+    """Check for invalid feature names in [...] blocks after forms."""
+    # Find feature brackets: }[...] or }@scale[...]
+    for match in re.finditer(r"\}(?:@[\d.]+)?\[([^\]]+)\]", line_text):
+        content = match.group(1)
+        # Parse individual features (name:value pairs)
+        for feat_match in re.finditer(r"(\w+)\s*:", content):
+            feat_name = feat_match.group(1).lower()
+            # Skip if it looks like a point group context (numbers, slashes)
+            if feat_name in ALL_POINT_GROUPS:
+                continue
+            if feat_name not in FEATURE_NAMES:
+                abs_start = match.start(1) + feat_match.start(1)
+                diagnostics.append(
+                    DiagnosticInfo(
+                        line=line_num,
+                        start_char=abs_start,
+                        end_char=abs_start + len(feat_name),
+                        message=f"Unknown feature '{feat_name}'. "
+                        f"Known features: {', '.join(sorted(FEATURE_NAMES))}",
+                        severity="warning",
+                        code="unknown-feature",
+                        data={"original": feat_name},
+                    )
+                )
+
+
+def _check_phenomenon_type(
+    line_text: str, line_num: int, diagnostics: list[DiagnosticInfo]
+) -> None:
+    """Check for invalid phenomenon types."""
+    phen_match = re.search(r"phenomenon\[(\w+)", line_text)
+    if phen_match:
+        phen_type = phen_match.group(1).lower()
+        if phen_type not in PHENOMENON_TYPES:
+            start = phen_match.start(1)
+            diagnostics.append(
+                DiagnosticInfo(
+                    line=line_num,
+                    start_char=start,
+                    end_char=start + len(phen_type),
+                    message=f"Unknown phenomenon type '{phen_type}'. "
+                    f"Known types: {', '.join(sorted(PHENOMENON_TYPES))}",
+                    severity="warning",
+                    code="unknown-phenomenon",
+                    data={"original": phen_type},
+                )
+            )
 
 
 def get_diagnostics(text: str) -> list[Any]:

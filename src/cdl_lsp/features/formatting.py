@@ -80,6 +80,15 @@ def format_line(line: str) -> str:
     if content.strip().startswith("#"):
         return line
 
+    # Handle definition lines: @name = expression
+    def_match = re.match(r"^(@\w+)\s*=\s*(.+)$", content.strip())
+    if def_match:
+        def_name = def_match.group(1)
+        def_expr = def_match.group(2)
+        # Format the expression part
+        formatted_expr = format_line(def_expr)
+        return f"{leading_ws}{def_name} = {formatted_expr}"
+
     formatted = content
 
     # 1. Lowercase crystal system names

@@ -2,7 +2,8 @@
 CDL Definition - Go to definition support for CDL documents.
 
 This module provides go-to-definition functionality for CDL elements,
-allowing navigation to the source definitions of forms, twin laws, etc.
+allowing navigation to the source definitions of forms, twin laws,
+and named CDL definitions (@name = expression / $name references).
 """
 
 import os
@@ -22,6 +23,11 @@ from ..constants import (
     TWIN_LAWS,
     get_definition_source,
 )
+
+# Pattern for named definitions: @name = expression
+DEFINITION_LINE_PATTERN = re.compile(r"^@(\w+)\s*=\s*(.+)$")
+# Pattern for references: $name
+REFERENCE_PATTERN = re.compile(r"\$(\w+)")
 
 
 def _get_word_at_position(line: str, col: int) -> tuple[str, int, int]:
@@ -134,7 +140,92 @@ def _create_location(file_path: str, line: int, character: int = 0) -> Any:
     )
 
 
-def get_definition(line: str, col: int, line_num: int = 0, document_uri: str = "") -> Any | None:
+def _find_definition_in_document(
+    name: str, document_text: str, document_uri: str
+) -> Any | None:
+    """
+    Find a @name definition in the document text.
+
+    Args:
+        name: The definition name (without $ or @)
+        document_text: Full document text
+        document_uri: URI of the document
+
+    Returns:
+        Location object or None
+    """
+    lines = document_text.split("\n")
+    for i, doc_line in enumerate(lines):
+        match = DEFINITION_LINE_PATTERN.match(doc_line.strip())
+        if match and match.group(1) == name:
+            # Find the column of the @name
+            stripped = doc_line.lstrip()
+            col_offset = len(doc_line) - len(stripped)
+            # Point to the name after @
+            name_col = col_offset + 1  # skip @
+
+            if types is None:
+                return {
+                    "uri": document_uri,
+                    "range": {
+                        "start": {"line": i, "character": name_col},
+                        "end": {"line": i, "character": name_col + len(name)},
+                    },
+                }
+
+            return types.Location(
+                uri=document_uri,
+                range=types.Range(
+                    start=types.Position(line=i, character=name_col),
+                    end=types.Position(line=i, character=name_col + len(name)),
+                ),
+            )
+    return None
+
+
+def _is_on_reference(line: str, col: int) -> str | None:
+    """
+    Check if the cursor is on a $reference and return the name.
+
+    Args:
+        line: Line text
+        col: Column position (0-based)
+
+    Returns:
+        Reference name (without $) or None
+    """
+    for match in REFERENCE_PATTERN.finditer(line):
+        # Match spans from $ to end of name
+        if match.start() <= col <= match.end():
+            return match.group(1)
+    return None
+
+
+def find_document_definitions(document_text: str) -> list[tuple[str, int, str]]:
+    """
+    Find all @name = expression definitions in a document.
+
+    Args:
+        document_text: Full document text
+
+    Returns:
+        List of (name, line_number, expression) tuples
+    """
+    definitions = []
+    for i, line in enumerate(document_text.split("\n")):
+        match = DEFINITION_LINE_PATTERN.match(line.strip())
+        if match:
+            definitions.append((match.group(1), i, match.group(2)))
+    return definitions
+
+
+def get_definition(
+    line: str,
+    col: int,
+    line_num: int = 0,
+    document_uri: str = "",
+    document_text: str = "",
+) -> Any | None:
     """
     Get definition location for the symbol at position.
 
@@ -143,10 +234,18 @@ def get_definition(line: str, col: int, line_num: int = 0, document_uri: str = "
         col: Column position (0-based)
         line_num: Line number (0-based)
         document_uri: URI of the current document
+        document_text: Full document text (needed for $reference resolution)
 
     Returns:
         Location object or None if no definition found
     """
+    # Check if cursor is on a $reference
+    ref_name = _is_on_reference(line, col)
+    if ref_name and document_text:
+        result = _find_definition_in_document(ref_name, document_text, document_uri)
+        if result:
+            return result
+
     word, start, end = _get_word_at_position(line, col)
 
     if not word:
@@ -196,7 +295,13 @@ def get_definition(line: str, col: int, line_num: int = 0, document_uri: str = "
     return None
 
 
-def get_definitions(line: str, col: int, line_num: int = 0, document_uri: str = "") -> list[Any]:
+def get_definitions(
+    line: str,
+    col: int,
+    line_num: int = 0,
+    document_uri: str = "",
+    document_text: str = "",
+) -> list[Any]:
     """
     Get all definition locations for the symbol at position.
 
@@ -208,11 +313,12 @@ def get_definitions(line: str, col: int, line_num: int = 0, document_uri: str = 
         col: Column position (0-based)
         line_num: Line number (0-based)
         document_uri: URI of the current document
+        document_text: Full document text (needed for $reference resolution)
 
     Returns:
         List of Location objects
     """
-    definition = get_definition(line, col, line_num, document_uri)
+    definition = get_definition(line, col, line_num, document_uri, document_text)
     if definition:
         return [definition]
     return []
