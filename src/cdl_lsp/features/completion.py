@@ -19,10 +19,14 @@ from ..constants import (
     COMMON_SCALES,
     CRYSTAL_SYSTEMS,
     DEFAULT_POINT_GROUPS,
+    FEATURE_DOCS,
+    FEATURE_NAMES,
     FORM_DOCS,
     MODIFICATION_DOCS,
     MODIFICATIONS,
     NAMED_FORMS,
+    PHENOMENON_DOCS,
+    PHENOMENON_TYPES,
     POINT_GROUP_DOCS,
     POINT_GROUPS,
     SYSTEM_DOCS,
@@ -47,6 +51,10 @@ class CompletionContext(Enum):
     MODIFICATION = auto()  # Inside modification name
     MODIFICATION_PARAM = auto()  # Inside modification parameters
     TWIN_LAW = auto()  # Inside twin() parameters
+    FEATURE_NAME = auto()  # Inside [...] after form, expecting feature name
+    PHENOMENON_TYPE = auto()  # After | phenomenon[, expecting type
+    REFERENCE = auto()  # After $ expecting definition name
+    DEFINITION_START = auto()  # After @ at line start, expecting definition syntax
     UNKNOWN = auto()
 
 
@@ -72,16 +80,42 @@ def _detect_context(line: str, col: int) -> tuple[CompletionContext, str]:
     if not text_before_stripped:
         return (CompletionContext.EMPTY, current_word)
 
+    # After $ - reference to a named definition
+    ref_match = re.search(r"\$(\w*)$", text_before)
+    if ref_match:
+        return (CompletionContext.REFERENCE, ref_match.group(1))
+
+    # @ at line start - definition syntax
+    def_match = re.match(r"^\s*@(\w*)$", text_before)
+    if def_match:
+        return (CompletionContext.DEFINITION_START, def_match.group(1))
+
     # Inside twin()
     twin_match = re.search(r"twin\s*\(\s*(\w*)$", text_before, re.IGNORECASE)
     if twin_match:
         return (CompletionContext.TWIN_LAW, twin_match.group(1))
 
     # Inside modification parameters
-    for mod in ["elongate", "truncate", "taper", "bevel"]:
+    for mod in ["elongate", "truncate", "taper", "bevel", "flatten"]:
         mod_match = re.search(rf"{mod}\s*\([^)]*$", text_before, re.IGNORECASE)
         if mod_match:
             return (CompletionContext.MODIFICATION_PARAM, current_word)
+
+    # After | phenomenon[
+    phenomenon_match = re.search(r"phenomenon\s*\[\s*(\w*)$", text_before, re.IGNORECASE)
+    if phenomenon_match:
+        return (CompletionContext.PHENOMENON_TYPE, phenomenon_match.group(1))
+
+    # Inside feature brackets [...] after form
+    # Check if we're after }@scale[ or }[
+    feature_bracket = re.search(r"\}[^{]*\[[^\]]*$", text_before)
+    if feature_bracket:
+        inside = re.search(r"\[([^\]]*)$", text_before)
+        if inside:
+            content = inside.group(1)
+            # If the last item has no colon, we're typing a feature name
+            if ":" not in content.split(",")[-1]:
+                return (CompletionContext.FEATURE_NAME, current_word)
 
     # Inside Miller index {}
     brace_match = re.search(r"\{[^}]*$", text_before)
@@ -174,7 +208,30 @@ def _create_completion_item(
     )
 
 
-def get_completions(line: str, col: int, trigger_character: str | None = None) -> list[Any]:
+def _find_definitions_in_text(document_text: str) -> list[tuple[str, str]]:
+    """
+    Find all @name = expression definitions in document text.
+
+    Args:
+        document_text: Full document text
+
+    Returns:
+        List of (name, expression) tuples
+    """
+    definitions = []
+    for doc_line in document_text.split("\n"):
+        match = re.match(r"^\s*@(\w+)\s*=\s*(.+)$", doc_line)
+        if match:
+            definitions.append((match.group(1), match.group(2).strip()))
+    return definitions
+
+
+def get_completions(
+    line: str,
+    col: int,
+    trigger_character: str | None = None,
+    document_text: str = "",
+) -> list[Any]:
     """
     Get completion items for the current position.
 
@@ -182,6 +239,7 @@ def get_completions(line: str, col: int, trigger_character: str | None = None) -
         line: Current line text
         col: Column position (0-based)
         trigger_character: The character that triggered completion (if any)
+        document_text: Full document text (for scanning definitions)
 
     Returns:
         List of completion items
@@ -327,7 +385,7 @@ def get_completions(line: str, col: int, trigger_character: str | None = None) -
             )
 
     elif context == CompletionContext.AFTER_PIPE:
-        # Suggest modifications and twin
+        # Suggest modifications, twin, and phenomenon
         prefix = current_word.lower()
 
         for mod in sorted(MODIFICATIONS):
@@ -342,6 +400,18 @@ def get_completions(line: str, col: int, trigger_character: str | None = None) -
                         insert_text=f"{mod}(",
                     )
                 )
+
+        # Add phenomenon as an option after pipe
+        if "phenomenon".startswith(prefix) or not prefix:
+            items.append(
+                _create_completion_item(
+                    label="phenomenon",
+                    kind=kind.Function if kind else "Function",
+                    detail="Optical phenomenon",
+                    documentation="Specify an optical phenomenon like asterism, chatoyancy, etc.",
+                    insert_text="phenomenon[",
+                )
+            )
 
     elif context == CompletionContext.TWIN_LAW:
         # Suggest twin laws
@@ -360,10 +430,40 @@ def get_completions(line: str, col: int, trigger_character: str | None = None) -
                     )
                 )
 
+    elif context == CompletionContext.FEATURE_NAME:
+        prefix = current_word.lower()
+        for feat in sorted(FEATURE_NAMES):
+            if feat.startswith(prefix) or not prefix:
+                doc = FEATURE_DOCS.get(feat, "")
+                items.append(
+                    _create_completion_item(
+                        label=feat,
+                        kind=kind.Property if kind else "Property",
+                        detail="Feature",
+                        documentation=doc,
+                        insert_text=f"{feat}:",
+                    )
+                )
+
+    elif context == CompletionContext.PHENOMENON_TYPE:
+        prefix = current_word.lower()
+        for phen in sorted(PHENOMENON_TYPES):
+            if phen.startswith(prefix) or not prefix:
+                doc = PHENOMENON_DOCS.get(phen, "")
+                items.append(
+                    _create_completion_item(
+                        label=phen,
+                        kind=kind.EnumMember if kind else "EnumMember",
+                        detail="Optical phenomenon",
+                        documentation=doc,
+                        insert_text=f"{phen}:",
+                    )
+                )
+
     elif context == CompletionContext.MODIFICATION_PARAM:
         # Context-sensitive parameter completions
         # Detect which modification we're in
-        for mod in ["elongate", "truncate", "taper", "bevel"]:
+        for mod in ["elongate", "truncate", "taper", "bevel", "flatten"]:
             if re.search(rf"{mod}\s*\(", line, re.IGNORECASE):
                 if mod == "elongate":
                     for axis in ["a", "b", "c"]:
@@ -386,6 +486,48 @@ def get_completions(line: str, col: int, trigger_character: str | None = None) -
                                 detail=f"{{{miller[0]}{miller[1]}{miller[2]}}}",
                             )
                         )
+                elif mod == "flatten":
+                    for axis in ["a", "b", "c"]:
+                        items.append(
+                            _create_completion_item(
+                                label=f"{axis}:",
+                                kind=kind.Property if kind else "Property",
+                                detail="Axis parameter",
+                                documentation=f"Flatten along {axis}-axis",
+                            )
+                        )
                 break
+
+    elif context == CompletionContext.REFERENCE:
+        # After $, suggest known definition names from the document
+        prefix = current_word.lower()
+        definitions = _find_definitions_in_text(document_text)
+        for def_name, def_expr in definitions:
+            if def_name.lower().startswith(prefix) or not prefix:
+                items.append(
+                    _create_completion_item(
+                        label=def_name,
+                        kind=kind.Variable if kind else "Variable",
+                        detail=f"Reference to @{def_name}",
+                        documentation=f"Defined as: `{def_expr}`",
+                        sort_text="0" + def_name,
+                    )
+                )
+
+    elif context == CompletionContext.DEFINITION_START:
+        # After @ at line start, suggest definition syntax template
+        items.append(
+            _create_completion_item(
+                label="name = expression",
+                kind=kind.Snippet if kind else "Snippet",
+                detail="Named definition",
+                documentation=(
+                    "Define a named CDL expression that can be referenced with `$name`.\n\n"
+                    "Example:\n```\n@prism = {10-10}@1.0\n@body = $prism + {10-11}@0.8\n```"
+                ),
+                insert_text="name = ",
+                sort_text="0",
+            )
+        )
 
     return items

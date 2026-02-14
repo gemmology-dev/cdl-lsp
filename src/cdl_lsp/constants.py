@@ -25,10 +25,18 @@ try:
     from cdl_parser import (
         TWIN_LAWS as _TWINS,
     )
+    from cdl_parser import (
+        FEATURE_NAMES as _FEAT_NAMES,
+    )
+    from cdl_parser import (
+        PHENOMENON_TYPES as _PHEN_TYPES,
+    )
 
     CRYSTAL_SYSTEMS: set[str] = set(_SYSTEMS)
     NAMED_FORMS: dict[str, tuple[int, int, int]] = dict(_FORMS)
     TWIN_LAWS: set[str] = set(_TWINS)
+    FEATURE_NAMES: set[str] = set(_FEAT_NAMES)
+    PHENOMENON_TYPES: set[str] = set(_PHEN_TYPES)
     # Flatten all point groups from all systems
     ALL_POINT_GROUPS: set[str] = set()
     for _pgs in _GROUPS.values():
@@ -114,6 +122,24 @@ except ImportError:
         "gypsum_swallow",
     }
 
+    FEATURE_NAMES: set[str] = {
+        # Growth features
+        "phantom", "sector", "zoning", "skeletal", "dendritic",
+        # Surface features
+        "striation", "trigon", "etch_pit", "growth_hillock",
+        # Inclusion features
+        "inclusion", "needle", "silk", "fluid", "bubble",
+        # Color features
+        "colour", "colour_zone", "pleochroism",
+        # Other
+        "lamellar", "banding",
+    }
+
+    PHENOMENON_TYPES: set[str] = {
+        "asterism", "chatoyancy", "adularescence", "labradorescence",
+        "play_of_color", "colour_change", "aventurescence", "iridescence",
+    }
+
 # Default point group for each system
 DEFAULT_POINT_GROUPS: dict[str, str] = {
     "cubic": "m3m",
@@ -129,7 +155,7 @@ DEFAULT_POINT_GROUPS: dict[str, str] = {
 # Modifications
 # =============================================================================
 
-MODIFICATIONS: set[str] = {"elongate", "truncate", "taper", "bevel", "twin"}
+MODIFICATIONS: set[str] = {"elongate", "truncate", "taper", "bevel", "twin", "flatten"}
 
 # =============================================================================
 # Common Miller indices by system
@@ -344,6 +370,48 @@ Examples:
 - `twin(spinel)` - Spinel law macle
 - `twin(japan)` - Japan V-twin
 - `twin(trilling,3)` - Three-part cyclic twin""",
+    "flatten": """**flatten(axis:ratio)**
+
+Compresses the crystal along the specified axis.
+
+Parameters:
+- axis: a, b, or c
+- ratio: scaling factor (< 1 flattens)
+
+Example: `flatten(a:0.5)` - compress 50% along a-axis""",
+}
+
+FEATURE_DOCS: dict[str, str] = {
+    "phantom": "**phantom** - Internal growth zones visible as ghost outlines.\n\nValues: count (int), color (str)\n\nExample: `[phantom:3, white]`",
+    "sector": "**sector** - Sector zoning patterns from differential growth rates.\n\nValues: type (hourglass, hexagonal)\n\nExample: `[sector:hourglass]`",
+    "zoning": "**zoning** - Color or composition banding.\n\nValues: pattern\n\nExample: `[zoning:concentric]`",
+    "skeletal": "**skeletal** - Skeletal/hopper growth from rapid crystallization.\n\nValues: ratio (0-1)\n\nExample: `[skeletal:0.4]`",
+    "dendritic": "**dendritic** - Branching tree-like growth.\n\nValues: density\n\nExample: `[dendritic:fine]`",
+    "striation": "**striation** - Linear surface markings from growth/twinning.\n\nValues: direction, count\n\nExample: `[striation:parallel, 5]`",
+    "trigon": "**trigon** - Triangular etch pits on diamond octahedron faces.\n\nValues: density (dense/sparse/moderate)\n\nExample: `[trigon:dense]`",
+    "etch_pit": "**etch_pit** - Dissolution features on crystal faces.\n\nValues: density\n\nExample: `[etch_pit:sparse]`",
+    "growth_hillock": "**growth_hillock** - Spiral growth features.\n\nValues: density\n\nExample: `[growth_hillock:moderate]`",
+    "inclusion": "**inclusion** - Solid mineral inclusions.\n\nValues: mineral name\n\nExample: `[inclusion:rutile]`",
+    "needle": "**needle** - Needle-like inclusions.\n\nValues: mineral, density (0-1)\n\nExample: `[needle:rutile, 0.3]`",
+    "silk": "**silk** - Fine needle networks causing optical effects.\n\nValues: pattern (dense/oriented/asterism)\n\nExample: `[silk:dense]`",
+    "fluid": "**fluid** - Fluid inclusions.\n\nValues: type (two-phase, three-phase)\n\nExample: `[fluid:three-phase]`",
+    "bubble": "**bubble** - Gas/fluid bubbles (diagnostic for synthetics).\n\nValues: type (spherical, elongated)\n\nExample: `[bubble:spherical]`",
+    "colour": "**colour** - Crystal color.\n\nValues: color name\n\nExample: `[colour:purple]`",
+    "colour_zone": "**colour_zone** - Color banding zones.\n\nValues: colors (dash-separated), count\n\nExample: `[colour_zone:pink-green-pink, 3]`",
+    "pleochroism": "**pleochroism** - Direction-dependent color variation.\n\nValues: colors\n\nExample: `[pleochroism:blue-violet]`",
+    "lamellar": "**lamellar** - Lamellar structures (e.g., in moonstone).\n\nValues: spacing\n\nExample: `[lamellar:fine]`",
+    "banding": "**banding** - Visible banding patterns.\n\nValues: type (agate, concentric)\n\nExample: `[banding:agate]`",
+}
+
+PHENOMENON_DOCS: dict[str, str] = {
+    "asterism": "**asterism** - Star effect from oriented needle inclusions.\n\nParams: rays (3,4,6,12), intensity (weak/moderate/strong)\n\nExample: `| phenomenon[asterism:6, intensity:strong]`",
+    "chatoyancy": "**chatoyancy** - Cat's eye effect from parallel fibers.\n\nParams: sharpness (sharp/diffuse)\n\nExample: `| phenomenon[chatoyancy:sharp]`",
+    "adularescence": "**adularescence** - Floating blue-white light in moonstone.\n\nParams: intensity, color\n\nExample: `| phenomenon[adularescence:strong, blue]`",
+    "labradorescence": "**labradorescence** - Spectral color flash in labradorite.\n\nParams: colour\n\nExample: `| phenomenon[labradorescence:blue-green]`",
+    "play_of_color": "**play_of_color** - Spectral color patches in opal.\n\nParams: intensity (faint/moderate/intense)\n\nExample: `| phenomenon[play_of_color:intense]`",
+    "colour_change": "**colour_change** - Alexandrite effect (color change with lighting).\n\nParams: colours (dash-separated), intensity\n\nExample: `| phenomenon[colour_change:green-red, strong]`",
+    "aventurescence": "**aventurescence** - Sparkle effect from metallic inclusions.\n\nParams: colour\n\nExample: `| phenomenon[aventurescence:copper]`",
+    "iridescence": "**iridescence** - Rainbow colors from thin-film interference.\n\nExample: `| phenomenon[iridescence]`",
 }
 
 # =============================================================================
@@ -431,3 +499,13 @@ def is_valid_twin_law(name: str) -> bool:
 def is_valid_modification(name: str) -> bool:
     """Check if a name is a valid modification type."""
     return name.lower() in MODIFICATIONS
+
+
+def is_valid_feature_name(name: str) -> bool:
+    """Check if a name is a valid feature name."""
+    return name.lower() in FEATURE_NAMES
+
+
+def is_valid_phenomenon_type(name: str) -> bool:
+    """Check if a name is a valid phenomenon type."""
+    return name.lower() in PHENOMENON_TYPES

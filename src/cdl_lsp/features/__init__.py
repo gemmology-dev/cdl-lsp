@@ -17,7 +17,7 @@ This package contains the individual feature modules:
 
 from .code_actions import get_code_action_kinds, get_code_actions
 from .completion import get_completions
-from .definition import get_definition
+from .definition import find_document_definitions, get_definition
 from .diagnostics import DiagnosticInfo, get_diagnostics, validate_document
 from .document_symbols import get_document_symbols
 from .explain import explain_cdl, get_explain_result
@@ -38,6 +38,7 @@ __all__ = [
     "get_hover_info",
     # Definition
     "get_definition",
+    "find_document_definitions",
     # Snippets
     "get_preset_snippets",
     "get_snippet_for_preset",

@@ -2,7 +2,8 @@
 CDL Document Symbols - Outline view for CDL documents.
 
 This module provides document symbols that create an outline view
-showing crystal definitions, forms, and modifications in the sidebar.
+showing crystal definitions, forms, modifications, and named
+definitions (@name = expression) in the sidebar.
 """
 
 import re
@@ -13,12 +14,16 @@ try:
 except ImportError:
     types = None
 
+# Pattern for named definitions: @name = expression
+DEFINITION_LINE_PATTERN = re.compile(r"^@(\w+)\s*=\s*(.+)$")
+
 
 def get_document_symbols(text: str) -> list[Any]:
     """
     Extract symbols from a CDL document.
 
     Symbols include:
+    - Named definitions (@name = expression)
     - Crystal definitions (system[point_group])
     - Forms ({hkl} or named forms)
     - Modifications (twin, elongate, etc.)
@@ -42,12 +47,64 @@ def get_document_symbols(text: str) -> list[Any]:
         if not line_stripped or line_stripped.startswith("#"):
             continue
 
+        # Check for named definition (@name = expression)
+        def_symbol = _parse_definition_line(line, line_stripped, line_num)
+        if def_symbol:
+            symbols.append(def_symbol)
+            continue
+
         # Parse the CDL line
         symbol = _parse_cdl_line(line, line_stripped, line_num)
         if symbol:
             symbols.append(symbol)
 
     return symbols
+
+
+def _parse_definition_line(original_line: str, line: str, line_num: int) -> Any | None:
+    """
+    Parse a named definition line (@name = expression) into a DocumentSymbol.
+
+    Args:
+        original_line: Original line with leading whitespace
+        line: Stripped line content
+        line_num: Line number (0-based)
+
+    Returns:
+        DocumentSymbol or None
+    """
+    if types is None:
+        return None
+
+    match = DEFINITION_LINE_PATTERN.match(line)
+    if not match:
+        return None
+
+    name = match.group(1)
+    expression = match.group(2)
+
+    start_col = len(original_line) - len(original_line.lstrip())
+
+    # Full line range
+    line_range = types.Range(
+        start=types.Position(line=line_num, character=start_col),
+        end=types.Position(line=line_num, character=len(original_line)),
+    )
+
+    # Selection range is just the name part (after @)
+    name_start = start_col + 1  # skip @
+    selection_range = types.Range(
+        start=types.Position(line=line_num, character=name_start),
+        end=types.Position(line=line_num, character=name_start + len(name)),
+    )
+
+    return types.DocumentSymbol(
+        name=name,
+        kind=types.SymbolKind.Variable,
+        range=line_range,
+        selection_range=selection_range,
+        detail=f"Definition: {expression[:50]}{'...' if len(expression) > 50 else ''}",
+    )
 
 
 def _parse_cdl_line(original_line: str, line: str, line_num: int) -> Any | None:

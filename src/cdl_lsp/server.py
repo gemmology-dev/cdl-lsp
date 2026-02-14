@@ -74,7 +74,7 @@ def create_server() -> "LanguageServer":
                     save=types.SaveOptions(include_text=True),
                 ),
                 completion_provider=types.CompletionOptions(
-                    trigger_characters=["{", "[", ":", "@", "+", "|", "(", ","],
+                    trigger_characters=["{", "[", ":", "@", "+", "|", "(", ",", "$"],
                     resolve_provider=False,
                 ),
                 hover_provider=types.HoverOptions(),
@@ -200,7 +200,7 @@ def create_server() -> "LanguageServer":
         if params.context and params.context.trigger_character:
             trigger_char = params.context.trigger_character
 
-        items = get_completions(line, col, trigger_char)
+        items = get_completions(line, col, trigger_char, document_text=text)
 
         return types.CompletionList(is_incomplete=False, items=items)
 
@@ -252,7 +252,7 @@ def create_server() -> "LanguageServer":
 
         logger.debug(f"Definition at {uri}:{position.line}:{col}")
 
-        return get_definition(line, col, position.line, uri)
+        return get_definition(line, col, position.line, uri, text)
 
     # ==========================================================================
     # Diagnostics (Pull Model)
