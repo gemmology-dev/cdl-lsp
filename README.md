@@ -15,6 +15,15 @@ Part of the [Gemmology Project](https://gemmology.dev).
 - **Document Symbols**: Outline view of CDL documents
 - **Signature Help**: Parameter hints for modifications
 
+### CDL v2.0 Support
+
+- **Amorphous completions**: Autocomplete for subtypes (`opalescent`, `glassy`, `waxy`, `resinous`, `cryptocrystalline`) and shapes (`massive`, `botryoidal`, `reniform`, etc.)
+- **Aggregate completions**: Autocomplete for arrangement types (`parallel`, `random`, `radial`, `epitaxial`, `druse`, `cluster`) and orientations (`aligned`, `random`, `planar`, `spherical`)
+- **New diagnostics**: Validation of amorphous subtypes, amorphous shapes, arrangement types, and aggregate count limits
+- **Formatting**: Normalizes spacing around `>` (nested growth) and `~` (aggregate) operators, and `amorphous[sub]:{shapes}` syntax
+- **Document symbols**: Recognizes amorphous descriptions, nested growth operators, and aggregate specifications in the outline view
+- **Go to Definition**: Navigates to source definitions for amorphous subtypes, shapes, and arrangement types
+
 ## Installation
 
 ```bash
@@ -24,7 +33,7 @@ pip install cdl-lsp
 ### Dependencies
 
 The package requires:
-- `cdl-parser>=1.0.0` - CDL parsing library
+- `cdl-parser>=2.0.0` - CDL parsing library
 - `pygls>=1.0.0` - Python language server framework
 - `lsprotocol>=2023.0.0` - LSP type definitions
 
@@ -110,6 +119,17 @@ cubic[m3m]:{111}|twin(spinel)        # Twinned
 # Different crystal systems
 hexagonal[6/mmm]:{10-10}@1.0 + {0001}@0.5   # Hexagonal prism
 trigonal[-3m]:{10-11}                       # Rhombohedron
+
+# Amorphous materials (v2.0)
+amorphous[opalescent]:{botryoidal} | phenomenon[play_of_color:intense]
+amorphous[cryptocrystalline]:{massive, nodular}[colour:blue]
+
+# Nested growth (v2.0)
+trigonal[32]:({10-10}@1.0 + {10-11}@0.8) > ({10-10}@0.5 + {10-11}@0.4)
+
+# Aggregates (v2.0)
+trigonal[32]:{10-10}@1.0 + {10-11}@0.8 ~ cluster[12]
+cubic[m3m]:{100} ~ cluster[5]
 ```
 
 ## API Reference

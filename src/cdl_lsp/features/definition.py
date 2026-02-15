@@ -16,7 +16,10 @@ except ImportError:
     types = None
 
 from ..constants import (
+    AGGREGATE_ARRANGEMENTS,
     ALL_POINT_GROUPS,
+    AMORPHOUS_SHAPES,
+    AMORPHOUS_SUBTYPES,
     CRYSTAL_SYSTEMS,
     DEFINITION_PATTERNS,
     NAMED_FORMS,
@@ -287,6 +290,33 @@ def get_definition(
         if file_path:
             pattern = DEFINITION_PATTERNS["point_groups"]
             found_line = _find_line_in_file(file_path, pattern, word)
+            if found_line is not None:
+                return _create_location(file_path, found_line)
+
+    # CDL v2.0: Check if it's an amorphous subtype
+    if word_lower in AMORPHOUS_SUBTYPES:
+        file_path = _get_source_file("amorphous_subtypes")
+        if file_path:
+            pattern = DEFINITION_PATTERNS["amorphous_subtypes"]
+            found_line = _find_line_in_file(file_path, pattern, word_lower)
+            if found_line is not None:
+                return _create_location(file_path, found_line)
+
+    # CDL v2.0: Check if it's an amorphous shape
+    if word_lower in AMORPHOUS_SHAPES:
+        file_path = _get_source_file("amorphous_shapes")
+        if file_path:
+            pattern = DEFINITION_PATTERNS["amorphous_shapes"]
+            found_line = _find_line_in_file(file_path, pattern, word_lower)
+            if found_line is not None:
+                return _create_location(file_path, found_line)
+
+    # CDL v2.0: Check if it's an aggregate arrangement type
+    if word_lower in AGGREGATE_ARRANGEMENTS:
+        file_path = _get_source_file("arrangements")
+        if file_path:
+            pattern = DEFINITION_PATTERNS["arrangements"]
+            found_line = _find_line_in_file(file_path, pattern, word_lower)
             if found_line is not None:
                 return _create_location(file_path, found_line)
 

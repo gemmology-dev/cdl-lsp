@@ -53,6 +53,12 @@ def get_document_symbols(text: str) -> list[Any]:
             symbols.append(def_symbol)
             continue
 
+        # Check for amorphous CDL line (CDL v2.0)
+        amor_symbol = _parse_amorphous_line(line, line_stripped, line_num)
+        if amor_symbol:
+            symbols.append(amor_symbol)
+            continue
+
         # Parse the CDL line
         symbol = _parse_cdl_line(line, line_stripped, line_num)
         if symbol:
@@ -104,6 +110,52 @@ def _parse_definition_line(original_line: str, line: str, line_num: int) -> Any 
         range=line_range,
         selection_range=selection_range,
         detail=f"Definition: {expression[:50]}{'...' if len(expression) > 50 else ''}",
+    )
+
+
+def _parse_amorphous_line(original_line: str, line: str, line_num: int) -> Any | None:
+    """
+    Parse an amorphous CDL line into a DocumentSymbol.
+
+    Args:
+        original_line: Original line with leading whitespace
+        line: Stripped line content
+        line_num: Line number (0-based)
+
+    Returns:
+        DocumentSymbol or None
+    """
+    if types is None:
+        return None
+
+    # Match amorphous[subtype]
+    amor_match = re.match(r"(amorphous)\s*\[([^\]]*)\]", line, re.IGNORECASE)
+    if not amor_match:
+        return None
+
+    subtype = amor_match.group(2) or "none"
+
+    start_col = len(original_line) - len(original_line.lstrip())
+    line_range = types.Range(
+        start=types.Position(line=line_num, character=start_col),
+        end=types.Position(line=line_num, character=len(original_line)),
+    )
+
+    selection_range = types.Range(
+        start=types.Position(line=line_num, character=start_col),
+        end=types.Position(line=line_num, character=start_col + amor_match.end()),
+    )
+
+    # Extract children (shapes, nested growth, aggregates)
+    children = _extract_children(line, line_num, start_col)
+
+    return types.DocumentSymbol(
+        name=f"amorphous[{subtype}]",
+        kind=types.SymbolKind.Class,
+        range=line_range,
+        selection_range=selection_range,
+        detail="Amorphous material",
+        children=children if children else None,
     )
 
 
@@ -253,6 +305,48 @@ def _extract_children(line: str, line_num: int, base_col: int) -> list[Any]:
                     end=types.Position(line=line_num, character=base_col + match.end(1)),
                 ),
                 detail="Twin law" if mod_name.lower() == "twin" else "Modification",
+            )
+        )
+
+    # CDL v2.0: Find nested growth operators (>)
+    for match in re.finditer(r"\s*>\s*", line):
+        start = match.start()
+        end = match.end()
+        children.append(
+            types.DocumentSymbol(
+                name=">",
+                kind=types.SymbolKind.Operator,
+                range=types.Range(
+                    start=types.Position(line=line_num, character=base_col + start),
+                    end=types.Position(line=line_num, character=base_col + end),
+                ),
+                selection_range=types.Range(
+                    start=types.Position(line=line_num, character=base_col + start),
+                    end=types.Position(line=line_num, character=base_col + end),
+                ),
+                detail="Nested growth",
+            )
+        )
+
+    # CDL v2.0: Find aggregate operators (~ arrangement[N])
+    for match in re.finditer(r"~\s*(\w+)\s*\[(\d+)\]", line):
+        arrangement = match.group(1)
+        count = match.group(2)
+        start = match.start()
+        end = match.end()
+        children.append(
+            types.DocumentSymbol(
+                name=f"~ {arrangement}[{count}]",
+                kind=types.SymbolKind.Operator,
+                range=types.Range(
+                    start=types.Position(line=line_num, character=base_col + start),
+                    end=types.Position(line=line_num, character=base_col + end),
+                ),
+                selection_range=types.Range(
+                    start=types.Position(line=line_num, character=base_col + start),
+                    end=types.Position(line=line_num, character=base_col + end),
+                ),
+                detail=f"Aggregate ({arrangement}, {count} individuals)",
             )
         )
 

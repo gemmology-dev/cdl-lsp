@@ -91,9 +91,9 @@ def format_line(line: str) -> str:
 
     formatted = content
 
-    # 1. Lowercase crystal system names
+    # 1. Lowercase crystal system names (including amorphous)
     formatted = re.sub(
-        r"^(Cubic|Tetragonal|Orthorhombic|Hexagonal|Trigonal|Monoclinic|Triclinic)\b",
+        r"^(Cubic|Tetragonal|Orthorhombic|Hexagonal|Trigonal|Monoclinic|Triclinic|Amorphous)\b",
         lambda m: m.group(1).lower(),
         formatted,
         flags=re.IGNORECASE,
@@ -108,6 +108,16 @@ def format_line(line: str) -> str:
     # Before: {111}|twin(...), {111}  |  twin(...)
     # After: {111} | twin(...)
     formatted = re.sub(r"\s*\|\s*", " | ", formatted)
+
+    # 3a. CDL v2.0: Normalize spacing around > (nested growth)
+    # Before: {111}>{100}, {111}  >  {100}
+    # After: {111} > {100}
+    formatted = re.sub(r"\s*>\s*", " > ", formatted)
+
+    # 3b. CDL v2.0: Normalize spacing around ~ (aggregate)
+    # Before: {111}~parallel[20], {111}  ~  parallel[20]
+    # After: {111} ~ parallel[20]
+    formatted = re.sub(r"\s*~\s*", " ~ ", formatted)
 
     # 4. No space before @
     # Before: {111} @1.0
@@ -134,6 +144,14 @@ def format_line(line: str) -> str:
     # Before: cubic[m3m]:  {111}
     # After: cubic[m3m]:{111}
     formatted = re.sub(r":\s+", ":", formatted)
+
+    # 8a. CDL v2.0: Normalize amorphous spacing: amorphous[sub]:{shapes}
+    formatted = re.sub(
+        r"(amorphous)\s*\[\s*(\w+)\s*\]\s*:\s*\{",
+        r"\1[\2]:{",
+        formatted,
+        flags=re.IGNORECASE,
+    )
 
     # 9. Normalize modification calls - no space before (
     # Before: twin ( spinel )

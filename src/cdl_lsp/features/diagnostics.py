@@ -25,7 +25,10 @@ except ImportError:
     types = None
 
 from ..constants import (
+    AGGREGATE_ARRANGEMENTS,
     ALL_POINT_GROUPS,
+    AMORPHOUS_SHAPES,
+    AMORPHOUS_SUBTYPES,
     CRYSTAL_SYSTEMS,
     FEATURE_NAMES,
     PHENOMENON_TYPES,
@@ -180,6 +183,12 @@ def _validate_cdl_line(line_text: str, line_num: int) -> list[DiagnosticInfo]:
     # Check for invalid feature names and phenomenon types (warnings, not blocking)
     _check_feature_names(line_text, line_num, diagnostics)
     _check_phenomenon_type(line_text, line_num, diagnostics)
+
+    # CDL v2.0: Check amorphous and aggregate elements (warnings/errors)
+    _check_amorphous_subtype(line_text, line_num, diagnostics)
+    _check_amorphous_shapes(line_text, line_num, diagnostics)
+    _check_arrangement_type(line_text, line_num, diagnostics)
+    _check_aggregate_count(line_text, line_num, diagnostics)
 
     # If we found issues with quick-fix data, return those
     if pre_parse_diagnostics:
@@ -538,6 +547,100 @@ def _check_phenomenon_type(
                     severity="warning",
                     code="unknown-phenomenon",
                     data={"original": phen_type},
+                )
+            )
+
+
+def _check_amorphous_subtype(
+    line_text: str, line_num: int, diagnostics: list[DiagnosticInfo]
+) -> None:
+    """Check for invalid amorphous subtypes."""
+    match = re.search(r"amorphous\s*\[(\w+)\]", line_text, re.IGNORECASE)
+    if match:
+        subtype = match.group(1).lower()
+        if subtype != "none" and subtype not in AMORPHOUS_SUBTYPES:
+            start = match.start(1)
+            diagnostics.append(
+                DiagnosticInfo(
+                    line=line_num,
+                    start_char=start,
+                    end_char=start + len(subtype),
+                    message=f"Unknown amorphous subtype '{subtype}'. "
+                    f"Known subtypes: {', '.join(sorted(AMORPHOUS_SUBTYPES))}",
+                    severity="warning",
+                    code="unknown-amorphous-subtype",
+                    data={"original": subtype},
+                )
+            )
+
+
+def _check_amorphous_shapes(
+    line_text: str, line_num: int, diagnostics: list[DiagnosticInfo]
+) -> None:
+    """Check for invalid amorphous shape descriptors."""
+    # Match amorphous[sub]:{shapes}
+    match = re.search(r"amorphous\s*\[\w+\]\s*:\s*\{([^}]+)\}", line_text, re.IGNORECASE)
+    if match:
+        shapes_text = match.group(1)
+        shapes_start = match.start(1)
+        for shape_match in re.finditer(r"(\w+)", shapes_text):
+            shape = shape_match.group(1).lower()
+            if shape not in AMORPHOUS_SHAPES:
+                abs_start = shapes_start + shape_match.start(1)
+                diagnostics.append(
+                    DiagnosticInfo(
+                        line=line_num,
+                        start_char=abs_start,
+                        end_char=abs_start + len(shape),
+                        message=f"Unknown amorphous shape '{shape}'. "
+                        f"Known shapes: {', '.join(sorted(AMORPHOUS_SHAPES))}",
+                        severity="warning",
+                        code="unknown-amorphous-shape",
+                        data={"original": shape},
+                    )
+                )
+
+
+def _check_arrangement_type(
+    line_text: str, line_num: int, diagnostics: list[DiagnosticInfo]
+) -> None:
+    """Check for invalid aggregate arrangement types."""
+    for match in re.finditer(r"~\s*(\w+)\s*\[", line_text):
+        arrangement = match.group(1).lower()
+        if arrangement not in AGGREGATE_ARRANGEMENTS:
+            start = match.start(1)
+            diagnostics.append(
+                DiagnosticInfo(
+                    line=line_num,
+                    start_char=start,
+                    end_char=start + len(arrangement),
+                    message=f"Unknown arrangement type '{arrangement}'. "
+                    f"Known types: {', '.join(sorted(AGGREGATE_ARRANGEMENTS))}",
+                    severity="error",
+                    code="unknown-arrangement",
+                    data={"original": arrangement},
+                )
+            )
+
+
+def _check_aggregate_count(
+    line_text: str, line_num: int, diagnostics: list[DiagnosticInfo]
+) -> None:
+    """Warn on aggregate count > 200."""
+    for match in re.finditer(r"~\s*\w+\s*\[(\d+)\]", line_text):
+        count = int(match.group(1))
+        if count > 200:
+            start = match.start(1)
+            diagnostics.append(
+                DiagnosticInfo(
+                    line=line_num,
+                    start_char=start,
+                    end_char=start + len(match.group(1)),
+                    message=f"Aggregate count {count} is very large (> 200). "
+                    "This may cause performance issues in rendering.",
+                    severity="warning",
+                    code="aggregate-count-large",
+                    data={"count": count},
                 )
             )
 

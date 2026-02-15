@@ -32,11 +32,29 @@ try:
         TWIN_LAWS as _TWINS,
     )
 
+    # CDL v2.0 amorphous/aggregate constants
+    from cdl_parser import (
+        AMORPHOUS_SUBTYPES as _AMOR_SUBTYPES,
+    )
+    from cdl_parser import (
+        AMORPHOUS_SHAPES as _AMOR_SHAPES,
+    )
+    from cdl_parser import (
+        AGGREGATE_ARRANGEMENTS as _AGG_ARRANGEMENTS,
+    )
+    from cdl_parser import (
+        AGGREGATE_ORIENTATIONS as _AGG_ORIENTATIONS,
+    )
+
     CRYSTAL_SYSTEMS: set[str] = set(_SYSTEMS)
     NAMED_FORMS: dict[str, tuple[int, int, int]] = dict(_FORMS)
     TWIN_LAWS: set[str] = set(_TWINS)
     FEATURE_NAMES: set[str] = set(_FEAT_NAMES)
     PHENOMENON_TYPES: set[str] = set(_PHEN_TYPES)
+    AMORPHOUS_SUBTYPES: set[str] = set(_AMOR_SUBTYPES)
+    AMORPHOUS_SHAPES: set[str] = set(_AMOR_SHAPES)
+    AGGREGATE_ARRANGEMENTS: set[str] = set(_AGG_ARRANGEMENTS)
+    AGGREGATE_ORIENTATIONS: set[str] = set(_AGG_ORIENTATIONS)
     # Flatten all point groups from all systems
     ALL_POINT_GROUPS: set[str] = set()
     for _pgs in _GROUPS.values():
@@ -158,6 +176,40 @@ except ImportError:
         "colour_change",
         "aventurescence",
         "iridescence",
+    }
+
+    AMORPHOUS_SUBTYPES: set[str] = {
+        "opalescent",
+        "glassy",
+        "waxy",
+        "resinous",
+        "cryptocrystalline",
+    }
+
+    AMORPHOUS_SHAPES: set[str] = {
+        "massive",
+        "botryoidal",
+        "reniform",
+        "stalactitic",
+        "mammillary",
+        "nodular",
+        "conchoidal",
+    }
+
+    AGGREGATE_ARRANGEMENTS: set[str] = {
+        "parallel",
+        "random",
+        "radial",
+        "epitaxial",
+        "druse",
+        "cluster",
+    }
+
+    AGGREGATE_ORIENTATIONS: set[str] = {
+        "aligned",
+        "random",
+        "planar",
+        "spherical",
     }
 
 # Default point group for each system
@@ -469,6 +521,9 @@ DEFINITION_PATTERNS: dict[str, str] = {
     "twin_laws": "TWIN_LAWS",
     "point_groups": "POINT_GROUPS",
     "systems": "CRYSTAL_SYSTEMS",
+    "amorphous_subtypes": "AMORPHOUS_SUBTYPES",
+    "amorphous_shapes": "AMORPHOUS_SHAPES",
+    "arrangements": "AGGREGATE_ARRANGEMENTS",
 }
 
 # =============================================================================
@@ -529,3 +584,75 @@ def is_valid_feature_name(name: str) -> bool:
 def is_valid_phenomenon_type(name: str) -> bool:
     """Check if a name is a valid phenomenon type."""
     return name.lower() in PHENOMENON_TYPES
+
+
+def is_valid_amorphous_subtype(name: str) -> bool:
+    """Check if a name is a valid amorphous subtype."""
+    return name.lower() in AMORPHOUS_SUBTYPES
+
+
+def is_valid_amorphous_shape(name: str) -> bool:
+    """Check if a name is a valid amorphous shape descriptor."""
+    return name.lower() in AMORPHOUS_SHAPES
+
+
+def is_valid_arrangement(name: str) -> bool:
+    """Check if a name is a valid aggregate arrangement type."""
+    return name.lower() in AGGREGATE_ARRANGEMENTS
+
+
+# =============================================================================
+# Amorphous Documentation (CDL v2.0)
+# =============================================================================
+
+AMORPHOUS_SUBTYPE_DOCS: dict[str, str] = {
+    "opalescent": "**opalescent** - Amorphous silica with play of colour from ordered silica spheres.\n\nExamples: precious opal, fire opal, common opal.",
+    "glassy": "**glassy** - Volcanic glass lacking crystal structure.\n\nExamples: obsidian, moldavite, Libyan desert glass.",
+    "waxy": "**waxy** - Waxy lustre amorphous material.\n\nExamples: some chalcedony, turquoise.",
+    "resinous": "**resinous** - Resinous lustre amorphous material.\n\nExamples: amber, copal.",
+    "cryptocrystalline": "**cryptocrystalline** - Aggregates of sub-microscopic crystals appearing amorphous.\n\nExamples: chalcedony, agate, jasper, chrysoprase.",
+}
+
+AMORPHOUS_SHAPE_DOCS: dict[str, str] = {
+    "massive": "**massive** - No distinct external form; solid mass.",
+    "botryoidal": "**botryoidal** - Grape-like rounded surface texture.",
+    "reniform": "**reniform** - Kidney-shaped surface morphology.",
+    "stalactitic": "**stalactitic** - Elongated, icicle-like pendant forms.",
+    "mammillary": "**mammillary** - Smooth, rounded, breast-like protuberances.",
+    "nodular": "**nodular** - Rounded, irregular lumps or nodules.",
+    "conchoidal": "**conchoidal** - Shell-like fracture surfaces (characteristic of glass).",
+}
+
+# =============================================================================
+# Aggregate Documentation (CDL v2.0)
+# =============================================================================
+
+AGGREGATE_ARRANGEMENT_DOCS: dict[str, str] = {
+    "parallel": "**parallel** - Crystals aligned along a common axis.\n\nExample: `{111} ~ parallel[20]`",
+    "random": "**random** - Randomly oriented individuals.\n\nExample: `{111} ~ random[50]`",
+    "radial": "**radial** - Crystals radiating from a central point.\n\nExample: `{10-10} ~ radial[30]`",
+    "epitaxial": "**epitaxial** - Oriented overgrowth on a substrate crystal.\n\nExample: `{111} ~ epitaxial[5]`",
+    "druse": "**druse** - Small crystals lining a cavity surface.\n\nExample: `{10-11} ~ druse[100]`",
+    "cluster": "**cluster** - Irregular grouping of crystals.\n\nExample: `{111} ~ cluster[10]`",
+}
+
+AGGREGATE_ORIENTATION_DOCS: dict[str, str] = {
+    "aligned": "**aligned** - All individuals share the same crystallographic orientation.",
+    "random": "**random** - Orientations are randomly distributed.",
+    "planar": "**planar** - Individuals lie in a common plane.",
+    "spherical": "**spherical** - Orientations distributed uniformly on a sphere.",
+}
+
+# =============================================================================
+# Nested Growth Documentation (CDL v2.0)
+# =============================================================================
+
+NESTED_GROWTH_DOCS: str = """**Nested Growth (`>`)**
+
+The `>` operator represents epitaxial or overgrowth relationships
+between crystal forms. The base form is on the left, overgrowth on the right.
+
+Right-associative: `a > b > c` means `a > (b > c)`.
+
+Example: `cubic[m3m]:{111}@1.0 > {100}@0.5`
+(Octahedron core with cube overgrowth)"""

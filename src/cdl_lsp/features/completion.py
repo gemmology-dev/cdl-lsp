@@ -15,6 +15,14 @@ except ImportError:
     types = None
 
 from ..constants import (
+    AGGREGATE_ARRANGEMENT_DOCS,
+    AGGREGATE_ARRANGEMENTS,
+    AGGREGATE_ORIENTATION_DOCS,
+    AGGREGATE_ORIENTATIONS,
+    AMORPHOUS_SHAPE_DOCS,
+    AMORPHOUS_SHAPES,
+    AMORPHOUS_SUBTYPE_DOCS,
+    AMORPHOUS_SUBTYPES,
     COMMON_MILLER_INDICES,
     COMMON_SCALES,
     CRYSTAL_SYSTEMS,
@@ -55,6 +63,10 @@ class CompletionContext(Enum):
     PHENOMENON_TYPE = auto()  # After | phenomenon[, expecting type
     REFERENCE = auto()  # After $ expecting definition name
     DEFINITION_START = auto()  # After @ at line start, expecting definition syntax
+    AMORPHOUS_SUBTYPE = auto()  # Inside amorphous[, expecting subtype
+    AMORPHOUS_SHAPE = auto()  # Inside amorphous[sub]:{, expecting shape descriptor
+    ARRANGEMENT_TYPE = auto()  # After ~, expecting arrangement type
+    AGGREGATE_ORIENTATION = auto()  # After ~ arr[N] [, expecting orientation
     UNKNOWN = auto()
 
 
@@ -79,6 +91,30 @@ def _detect_context(line: str, col: int) -> tuple[CompletionContext, str]:
     # Empty or start of line
     if not text_before_stripped:
         return (CompletionContext.EMPTY, current_word)
+
+    # CDL v2.0: Amorphous subtype — amorphous[
+    amor_sub_match = re.search(r"amorphous\s*\[\s*(\w*)$", text_before, re.IGNORECASE)
+    if amor_sub_match:
+        return (CompletionContext.AMORPHOUS_SUBTYPE, amor_sub_match.group(1))
+
+    # CDL v2.0: Amorphous shape — amorphous[sub]:{
+    amor_shape_match = re.search(
+        r"amorphous\s*\[\w+\]\s*:\s*\{[^}]*?(\w*)$", text_before, re.IGNORECASE
+    )
+    if amor_shape_match:
+        return (CompletionContext.AMORPHOUS_SHAPE, amor_shape_match.group(1))
+
+    # CDL v2.0: Aggregate orientation — ~ arr[N] [
+    orient_match = re.search(
+        r"~\s*\w+\s*\[\d+\]\s*(?:@[\w.]+\s*)?\[\s*(\w*)$", text_before, re.IGNORECASE
+    )
+    if orient_match:
+        return (CompletionContext.AGGREGATE_ORIENTATION, orient_match.group(1))
+
+    # CDL v2.0: Arrangement type — after ~
+    arr_match = re.search(r"~\s*(\w*)$", text_before)
+    if arr_match:
+        return (CompletionContext.ARRANGEMENT_TYPE, arr_match.group(1))
 
     # After $ - reference to a named definition
     ref_match = re.search(r"\$(\w*)$", text_before)
@@ -266,6 +302,24 @@ def get_completions(
                     documentation=doc,
                     insert_text=f"{system}[{DEFAULT_POINT_GROUPS[system]}]:",
                     sort_text="0" + system,  # Systems first
+                )
+            )
+
+        # CDL v2.0: Suggest 'amorphous' alongside crystal systems
+        if not prefix or "amorphous".startswith(prefix):
+            items.append(
+                _create_completion_item(
+                    label="amorphous",
+                    kind=kind.Keyword if kind else "Keyword",
+                    detail="Amorphous material (CDL v2.0)",
+                    documentation=(
+                        "**Amorphous Material**\n\n"
+                        "For materials without crystalline structure.\n\n"
+                        "Syntax: `amorphous[subtype]:{shape1, shape2}`\n\n"
+                        "Examples: opal, obsidian, amber, chalcedony"
+                    ),
+                    insert_text="amorphous[",
+                    sort_text="0amorphous",
                 )
             )
 
@@ -529,5 +583,68 @@ def get_completions(
                 sort_text="0",
             )
         )
+
+    elif context == CompletionContext.AMORPHOUS_SUBTYPE:
+        # Inside amorphous[, suggest subtypes
+        prefix = current_word.lower()
+        for subtype in sorted(AMORPHOUS_SUBTYPES):
+            if subtype.startswith(prefix) or not prefix:
+                doc = AMORPHOUS_SUBTYPE_DOCS.get(subtype, "")
+                items.append(
+                    _create_completion_item(
+                        label=subtype,
+                        kind=kind.EnumMember if kind else "EnumMember",
+                        detail="Amorphous subtype",
+                        documentation=doc,
+                        insert_text=f"{subtype}]:",
+                    )
+                )
+
+    elif context == CompletionContext.AMORPHOUS_SHAPE:
+        # Inside amorphous[sub]:{, suggest shape descriptors
+        prefix = current_word.lower()
+        for shape in sorted(AMORPHOUS_SHAPES):
+            if shape.startswith(prefix) or not prefix:
+                doc = AMORPHOUS_SHAPE_DOCS.get(shape, "")
+                items.append(
+                    _create_completion_item(
+                        label=shape,
+                        kind=kind.Value if kind else "Value",
+                        detail="Shape descriptor",
+                        documentation=doc,
+                    )
+                )
+
+    elif context == CompletionContext.ARRANGEMENT_TYPE:
+        # After ~, suggest arrangement types
+        prefix = current_word.lower()
+        for arr in sorted(AGGREGATE_ARRANGEMENTS):
+            if arr.startswith(prefix) or not prefix:
+                doc = AGGREGATE_ARRANGEMENT_DOCS.get(arr, "")
+                items.append(
+                    _create_completion_item(
+                        label=arr,
+                        kind=kind.EnumMember if kind else "EnumMember",
+                        detail="Aggregate arrangement",
+                        documentation=doc,
+                        insert_text=f"{arr}[",
+                    )
+                )
+
+    elif context == CompletionContext.AGGREGATE_ORIENTATION:
+        # After ~ arr[N] [, suggest orientations
+        prefix = current_word.lower()
+        for orient in sorted(AGGREGATE_ORIENTATIONS):
+            if orient.startswith(prefix) or not prefix:
+                doc = AGGREGATE_ORIENTATION_DOCS.get(orient, "")
+                items.append(
+                    _create_completion_item(
+                        label=orient,
+                        kind=kind.EnumMember if kind else "EnumMember",
+                        detail="Aggregate orientation",
+                        documentation=doc,
+                        insert_text=f"{orient}]",
+                    )
+                )
 
     return items
