@@ -14,6 +14,20 @@ from pathlib import Path
 # Import from cdl-parser where possible
 try:
     from cdl_parser import (
+        AGGREGATE_ARRANGEMENTS as _AGG_ARRANGEMENTS,
+    )
+
+    # CDL v2.0 aggregate orientations
+    from cdl_parser import (
+        AGGREGATE_ORIENTATIONS as _AGG_ORIENTATIONS,
+    )
+    from cdl_parser import (
+        AMORPHOUS_SHAPES as _AMOR_SHAPES,
+    )
+    from cdl_parser import (
+        AMORPHOUS_SUBTYPES as _AMOR_SUBTYPES,
+    )
+    from cdl_parser import (
         CRYSTAL_SYSTEMS as _SYSTEMS,
     )
     from cdl_parser import (
@@ -30,20 +44,6 @@ try:
     )
     from cdl_parser import (
         TWIN_LAWS as _TWINS,
-    )
-
-    # CDL v2.0 amorphous/aggregate constants
-    from cdl_parser import (
-        AMORPHOUS_SUBTYPES as _AMOR_SUBTYPES,
-    )
-    from cdl_parser import (
-        AMORPHOUS_SHAPES as _AMOR_SHAPES,
-    )
-    from cdl_parser import (
-        AGGREGATE_ARRANGEMENTS as _AGG_ARRANGEMENTS,
-    )
-    from cdl_parser import (
-        AGGREGATE_ORIENTATIONS as _AGG_ORIENTATIONS,
     )
 
     CRYSTAL_SYSTEMS: set[str] = set(_SYSTEMS)

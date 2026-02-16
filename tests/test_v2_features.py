@@ -10,21 +10,19 @@ from cdl_lsp.features.completion import (
     _detect_context,
     get_completions,
 )
+from cdl_lsp.features.definition import get_definition
 from cdl_lsp.features.diagnostics import (
     DiagnosticInfo,
     _check_aggregate_count,
     _check_amorphous_shapes,
     _check_amorphous_subtype,
     _check_arrangement_type,
-    validate_document,
 )
-from cdl_lsp.features.definition import get_definition
 from cdl_lsp.features.document_symbols import (
     _extract_children,
     get_document_symbols,
 )
 from cdl_lsp.features.formatting import format_line
-
 
 # =============================================================================
 # L2: Completion Tests
