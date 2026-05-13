@@ -2,7 +2,10 @@
 
 **Language Server Protocol (LSP) Implementation** for the Crystal Description Language (CDL).
 
-Part of the [Gemmology Project](https://gemmology.dev).
+!!! tip "Interactive companion"
+    See live examples in the [CDL Playground](https://gemmology.dev/playground/),
+    browse 96+ rendered presets in the [Crystal Gallery](https://gemmology.dev/gallery/),
+    or take a [practice quiz](https://gemmology.dev/quiz/) on related material.
 
 ## Overview
 
